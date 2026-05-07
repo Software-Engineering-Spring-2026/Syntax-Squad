@@ -12,6 +12,7 @@ const ROLE_CARDS = {
     { to: '/instructors',       icon: '🎓', title: 'Instructors',     desc: 'Browse course instructors'           },
   ],
   instructor: [
+    { to: '/courses',           icon: '📚', title: 'Courses',          desc: 'View all courses and their codes'  },
     { to: '/browse/projects',   icon: '🔍', title: 'Browse Projects',  desc: 'View and rate student projects'    },
     { to: '/browse/portfolios', icon: '👤', title: 'Portfolios',       desc: 'Explore student portfolios'        },
     { to: '/instructors',       icon: '🎓', title: 'Instructors',      desc: 'Browse course instructors'         },
@@ -20,6 +21,7 @@ const ROLE_CARDS = {
   employer: [
     { to: '/browse/projects',   icon: '🔍', title: 'Browse Projects',  desc: 'Discover student work'             },
     { to: '/browse/portfolios', icon: '👤', title: 'Portfolios',       desc: 'Find talented students'            },
+    { to: '/instructors',       icon: '🎓', title: 'Instructors',      desc: 'Browse course instructors'         },
     { to: '/my-internships',    icon: '💼', title: 'My Internships',   desc: 'Manage your internship postings'   },
     { to: '/messages',          icon: '✉️', title: 'Messages',         desc: 'Connect with applicants'           },
   ],

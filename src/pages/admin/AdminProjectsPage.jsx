@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import store from '../../data/DummyDataStore'
 
-function FlaggedProjectModal({ project, onClose, onAction }) {
+function ProjectModal({ project, onClose, onAction }) {
   const owner = store.getUserById(project.ownerId, 'student')
   const course = store.getCourses().find((c) => c.id === project.courseId)
   const flagger = project.flaggedBy ? store.getUserById(project.flaggedBy, 'instructor') : null
@@ -70,9 +69,11 @@ function FlaggedProjectModal({ project, onClose, onAction }) {
               Reactivate project
             </button>
           )}
-          <button className="btn btn-outline" onClick={() => { onAction('unflag', project.id); onClose() }}>
-            Mark as resolved (unflag)
-          </button>
+          {project.isFlagged && (
+            <button className="btn btn-outline" onClick={() => { onAction('unflag', project.id); onClose() }}>
+              Mark as resolved (unflag)
+            </button>
+          )}
           <button className="btn btn-outline" onClick={onClose}>Close</button>
         </div>
       </div>
@@ -80,16 +81,13 @@ function FlaggedProjectModal({ project, onClose, onAction }) {
   )
 }
 
-export default function AdminFlaggedPage() {
-  const [projects, setProjects] = useState(() => store.getFlaggedProjects())
+export default function AdminProjectsPage() {
+  const [projects, setProjects] = useState(() => store.getProjects())
   const [selected, setSelected] = useState(null)
   const [toast, setToast] = useState('')
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
-  const refresh = () => {
-    setProjects(store.getFlaggedProjects())
-    setSelected(null)
-  }
+  const refresh = () => setProjects(store.getProjects())
 
   const handleAction = (action, id) => {
     if (action === 'deactivate') {
@@ -106,43 +104,25 @@ export default function AdminFlaggedPage() {
   }
 
   const getOwnerName = (ownerId) => {
-    const user = store.getUserById(ownerId, 'student')
-    return user ? `${user.firstName} ${user.lastName}` : 'Unknown'
+    const u = store.getUserById(ownerId, 'student')
+    return u ? `${u.firstName} ${u.lastName}` : 'Unknown'
   }
 
   const getCourseName = (courseId) => {
-    const course = store.getCourses().find((c) => c.id === courseId)
-    return course ? course.code : '—'
+    const c = store.getCourses().find((x) => x.id === courseId)
+    return c ? c.code : '—'
   }
 
   return (
     <div>
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">Flagged projects</h1>
-          <p className="page-subtitle">Review flagged content and student appeals.</p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Link to="/admin/projects" className="btn btn-outline">
-            Show all projects
-          </Link>
+          <h1 className="admin-page-title">Projects</h1>
+          <p className="page-subtitle">View and manage all projects on the platform.</p>
         </div>
       </div>
 
       {toast && <div className="toast toast-success">{toast}</div>}
-
-      {projects.length === 0 && (
-        <div className="alert alert-success" style={{ marginBottom: 20 }}>
-          <span aria-hidden="true">✓</span>&nbsp; No flagged projects. Everything looks good!
-        </div>
-      )}
-
-      {projects.length > 0 && (
-        <div className="alert alert-warning" style={{ marginBottom: 20 }}>
-          <span aria-hidden="true">🚩</span>&nbsp;
-          <strong>{projects.length} project{projects.length !== 1 ? 's' : ''}</strong> flagged for review.
-        </div>
-      )}
 
       <div className="table-wrap">
         <table className="data-table">
@@ -161,36 +141,36 @@ export default function AdminFlaggedPage() {
             {projects.length === 0 && (
               <tr><td colSpan={7} className="table-empty">No projects to display.</td></tr>
             )}
-            {projects.map((project) => (
-              <tr key={project.id} className={!project.isActive ? 'table-row-muted' : ''}>
-                <td className="table-name">{project.title}</td>
-                <td className="muted-text">{getOwnerName(project.ownerId)}</td>
-                <td><span className="course-code mono">{getCourseName(project.courseId)}</span></td>
+            {projects.map((p) => (
+              <tr key={p.id} className={!p.isActive ? 'table-row-muted' : ''}>
+                <td className="table-name">{p.title}</td>
+                <td className="muted-text">{getOwnerName(p.ownerId)}</td>
+                <td><span className="course-code mono">{getCourseName(p.courseId)}</span></td>
                 <td>
-                  {project.isFlagged
+                  {p.isFlagged
                     ? <span className="badge badge-error">🚩 Flagged</span>
                     : <span className="badge badge-success">Clear</span>}
                 </td>
                 <td>
-                  {project.appeal
+                  {p.appeal
                     ? <span className="badge badge-warning">Appeal filed</span>
                     : <span className="muted-text" style={{ fontSize: 13 }}>None</span>}
                 </td>
                 <td>
-                  <span className={`badge ${project.isActive ? 'badge-success' : 'badge-error'}`}>
-                    {project.isActive ? 'Active' : 'Deactivated'}
+                  <span className={`badge ${p.isActive ? 'badge-success' : 'badge-error'}`}>
+                    {p.isActive ? 'Active' : 'Deactivated'}
                   </span>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn btn-outline btn-sm" onClick={() => setSelected(project)}>
+                    <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>
                       Review
                     </button>
                     <button
-                      className={`btn btn-sm ${project.isActive ? 'btn-danger' : 'btn-primary'}`}
-                      onClick={() => handleAction(project.isActive ? 'deactivate' : 'activate', project.id)}
+                      className={`btn btn-sm ${p.isActive ? 'btn-danger' : 'btn-primary'}`}
+                      onClick={() => handleAction(p.isActive ? 'deactivate' : 'activate', p.id)}
                     >
-                      {project.isActive ? 'Deactivate' : 'Activate'}
+                      {p.isActive ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
                 </td>
@@ -201,7 +181,7 @@ export default function AdminFlaggedPage() {
       </div>
 
       {selected && (
-        <FlaggedProjectModal
+        <ProjectModal
           project={selected}
           onClose={() => setSelected(null)}
           onAction={handleAction}

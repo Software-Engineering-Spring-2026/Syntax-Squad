@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
@@ -85,7 +86,10 @@ function CourseLinkSection({ user }) {
 
   return (
     <div className="card-section">
-      <h3 className="card-section-title">Linked courses</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <h3 className="card-section-title" style={{ marginBottom: 0 }}>Linked courses</h3>
+        <Link to="/courses" className="btn btn-outline btn-sm">View all courses</Link>
+      </div>
 
       <div className="linked-courses-list">
         {allCourses

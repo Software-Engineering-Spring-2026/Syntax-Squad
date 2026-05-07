@@ -145,6 +145,7 @@ const defaultData = {
     {
       id: 'admin-1',
       role: 'admin',
+      username: 'admin',
       email: 'admin@guc.edu.eg',
       password: 'admin123',
       name: 'System Admin',
@@ -262,12 +263,11 @@ class DummyDataStore {
   _load() {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) {
-      this._persist(defaultData)
-      return JSON.parse(JSON.stringify(defaultData))
+      return this._normalizeData(defaultData)
     }
     try {
       const parsed = JSON.parse(raw)
-      return {
+      return this._normalizeData({
         students:     Array.isArray(parsed.students)     ? parsed.students     : defaultData.students,
         employers:    Array.isArray(parsed.employers)    ? parsed.employers    : defaultData.employers,
         admins:       Array.isArray(parsed.admins)       ? parsed.admins       : defaultData.admins,
@@ -276,16 +276,37 @@ class DummyDataStore {
         notifications:Array.isArray(parsed.notifications)? parsed.notifications: defaultData.notifications,
         projects:     Array.isArray(parsed.projects)     ? parsed.projects     : defaultData.projects,
         otps:         Array.isArray(parsed.otps)         ? parsed.otps         : [],
-      }
+      })
     } catch {
-      this._persist(defaultData)
-      return JSON.parse(JSON.stringify(defaultData))
+      return this._normalizeData(defaultData)
     }
   }
 
   _persist(data = this.data) {
     this.data = data
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  }
+
+  _normalizeData(data) {
+    const clone = JSON.parse(JSON.stringify(data))
+    let admins = Array.isArray(clone.admins) ? clone.admins : []
+
+    if (admins.length === 0) {
+      admins = JSON.parse(JSON.stringify(defaultData.admins))
+    }
+
+    admins = admins.map((admin, index) => ({
+      ...admin,
+      role: 'admin',
+      username: (admin.username || admin.email || `admin${index + 1}`).trim().toLowerCase(),
+      name: admin.name || admin.username || `Admin ${index + 1}`,
+      isActive: admin.isActive !== false,
+      notificationsEnabled: admin.notificationsEnabled !== false,
+    }))
+
+    const normalized = { ...clone, admins }
+    this._persist(normalized)
+    return normalized
   }
 
   // ── Auth ────────────────────────────────────────────────────────────────────
@@ -295,12 +316,17 @@ class DummyDataStore {
     return (
       this.data.students.some(u => u.email === e) ||
       this.data.employers.some(u => u.companyEmail === e) ||
-      this.data.admins.some(u => u.email === e)
+      this.data.admins.some(u => u.email === e || u.username === e)
     )
   }
 
-  authenticate(email, password) {
-    const e = email.trim().toLowerCase()
+  _adminUsernameExists(username) {
+    const u = username.trim().toLowerCase()
+    return this.data.admins.some(admin => admin.username === u || admin.email === u)
+  }
+
+  authenticate(identifier, password) {
+    const e = identifier.trim().toLowerCase()
 
     const student = this.data.students.find(u => u.email === e && u.password === password)
     if (student) {
@@ -314,7 +340,9 @@ class DummyDataStore {
       return { ok: true, user: employer }
     }
 
-    const admin = this.data.admins.find(u => u.email === e && u.password === password)
+    const admin = this.data.admins.find(u =>
+      (u.username === e || u.email === e) && u.password === password
+    )
     if (admin) {
       if (!admin.isActive) return { ok: false, error: 'Your account has been deactivated.' }
       return { ok: true, user: admin }
@@ -408,7 +436,7 @@ class DummyDataStore {
       return u
     })
     const admins = found ? this.data.admins : this.data.admins.map(u => {
-      if (u.email === e) { found = true; return { ...u, password: newPassword } }
+      if (u.email === e || u.username === e) { found = true; return { ...u, password: newPassword } }
       return u
     })
 
@@ -514,11 +542,10 @@ class DummyDataStore {
     const instructor = this.getUserById(instructorId, 'instructor')
     const course = this.data.courses.find(c => c.id === courseId)
     if (instructor && course) {
-      this.addNotification(
-        'admin-1',
-        `${instructor.firstName} ${instructor.lastName} requested to ${action} "${course.name}".`,
-        'link_request'
-      )
+      const message = `${instructor.firstName} ${instructor.lastName} requested to ${action} "${course.name}".`
+      this.data.admins.forEach((admin) => {
+        this.addNotification(admin.id, message, 'link_request')
+      })
     }
     return { ok: true }
   }
@@ -573,7 +600,7 @@ class DummyDataStore {
     const admins = this.data.admins.map(u => ({
       ...u,
       displayName: u.name,
-      primaryEmail: u.email,
+      primaryEmail: u.username,
     }))
     return [...students, ...employers, ...admins]
   }
@@ -592,16 +619,19 @@ class DummyDataStore {
     return { ok: true }
   }
 
-  createAdmin({ email, password, name }) {
-    const e = email.trim().toLowerCase()
-    if (this._emailExists(e)) return { ok: false, error: 'An account with this email already exists.' }
+  createAdmin({ username, password, name }) {
+    const u = username.trim().toLowerCase()
+    if (!u) return { ok: false, error: 'Username is required.' }
+    if (this._adminUsernameExists(u)) return { ok: false, error: 'An admin with this username already exists.' }
     const admin = {
       id: uid('admin'),
       role: 'admin',
-      email: e,
+      username: u,
+      email: '',
       password,
-      name: name.trim(),
+      name: name?.trim() || u,
       isActive: true,
+      notificationsEnabled: true,
     }
     this._persist({ ...this.data, admins: [...this.data.admins, admin] })
     return { ok: true, admin }
@@ -719,6 +749,11 @@ class DummyDataStore {
         u.id === userId ? { ...u, notificationsEnabled: enabled } : u
       )
       this._persist({ ...this.data, employers })
+    } else if (role === 'admin') {
+      const admins = this.data.admins.map(u =>
+        u.id === userId ? { ...u, notificationsEnabled: enabled } : u
+      )
+      this._persist({ ...this.data, admins })
     } else {
       const students = this.data.students.map(u =>
         u.id === userId ? { ...u, notificationsEnabled: enabled } : u

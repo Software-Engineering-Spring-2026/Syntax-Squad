@@ -62,9 +62,9 @@ export default function AdminDashboard() {
       <div className="stat-grid">
         <StatCard icon="👥" label="Total users"    value={stats.totalUsers}      color="blue"   to="/admin/users" />
         <StatCard icon="🎓" label="Students"        value={stats.students}        color="blue"   />
-        <StatCard icon="📖" label="Instructors"     value={stats.instructors}     color="blue"   />
+        <StatCard icon="📖" label="Instructors"     value={stats.instructors}     color="blue"   to="/instructors" />
         <StatCard icon="🏢" label="Employers"       value={stats.employers}       color="blue"   to="/admin/employers" />
-        <StatCard icon="📁" label="Projects"        value={stats.totalProjects}   color="green"  />
+        <StatCard icon="📁" label="Projects"        value={stats.totalProjects}   color="green"  to="/admin/projects" />
         <StatCard icon="📚" label="Courses"         value={stats.totalCourses}    color="green"  to="/admin/courses" />
         <StatCard
           icon="⏳"
@@ -147,3 +147,5 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
+

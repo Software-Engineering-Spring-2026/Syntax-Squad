@@ -3,23 +3,33 @@ import store from '../../data/DummyDataStore'
 import { useAuth } from '../../context/AuthContext'
 
 function CreateAdminModal({ onClose, onCreate }) {
-  const [form,  setForm]  = useState({ name: '', email: '', password: '', confirm: '' })
-  const [error, setError] = useState('')
+  const [form,  setForm]  = useState({ username: '', password: '', confirm: '' })
   const [saving,setSaving]= useState(false)
+  const [attempted, setAttempted] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+
+  const showUsernameError = attempted && !form.username.trim()
+  const showPasswordError = attempted && !form.password
+  const showConfirmError = attempted && !form.confirm
+  const showMismatchError =
+    attempted &&
+    form.password &&
+    form.confirm &&
+    form.password !== form.confirm
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name.trim())  { setError('Name is required.'); return }
-    if (!form.email.trim()) { setError('Email is required.'); return }
-    if (!form.password)     { setError('Password is required.'); return }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
-    if (form.password !== form.confirm) { setError('Passwords do not match.'); return }
-    setError('')
+    setAttempted(true)
+    setSubmitError('')
+    if (!form.username.trim()) return
+    if (!form.password) return
+    if (form.password.length < 6) return
+    if (form.password !== form.confirm) return
     setSaving(true)
     await new Promise(r => setTimeout(r, 400))
-    const result = store.createAdmin({ email: form.email, password: form.password, name: form.name })
+    const result = store.createAdmin({ username: form.username, password: form.password })
     setSaving(false)
-    if (!result.ok) { setError(result.error); return }
+    if (!result.ok) { setSubmitError(result.error); return }
     onCreate()
     onClose()
   }
@@ -33,22 +43,24 @@ function CreateAdminModal({ onClose, onCreate }) {
         </div>
         <form onSubmit={handleSubmit} noValidate className="modal-body">
           <div className="form-field">
-            <label className="field-label">Full name <span className="required">*</span></label>
-            <input type="text" className="field-input" placeholder="Admin name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-          </div>
-          <div className="form-field">
-            <label className="field-label">Email <span className="required">*</span></label>
-            <input type="email" className="field-input" placeholder="admin@guc.edu.eg" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
+            <label className="field-label">Username <span className="required">*</span></label>
+            <input type="text" className={`field-input ${showUsernameError ? 'field-input-error' : ''}`} placeholder="admin.username" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} autoComplete="username" required />
+            {showUsernameError && <span className="field-error" role="alert">Email is required.</span>}
+            {submitError && <span className="field-error" role="alert">{submitError}</span>}
           </div>
           <div className="form-field">
             <label className="field-label">Password <span className="required">*</span></label>
-            <input type="password" className="field-input" placeholder="Min 6 characters" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
+            <input type="password" className={`field-input ${showPasswordError || showMismatchError ? 'field-input-error' : ''}`} placeholder="Min 6 characters" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} autoComplete="new-password" required />
+            {showPasswordError && <span className="field-error" role="alert">Password is required.</span>}
+            {attempted && form.password && form.password.length < 6 && (
+              <span className="field-error" role="alert">Password must be at least 6 characters.</span>
+            )}
           </div>
           <div className="form-field">
             <label className="field-label">Confirm password <span className="required">*</span></label>
-            <input type="password" className="field-input" placeholder="Repeat password" value={form.confirm} onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))} required />
+            <input type="password" className={`field-input ${showConfirmError || showMismatchError ? 'field-input-error' : ''}`} placeholder="Repeat password" value={form.confirm} onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))} autoComplete="new-password" required />
+            {showMismatchError && <span className="field-error" role="alert">Passwords do not match.</span>}
           </div>
-          {error && <div className="alert alert-error"><span aria-hidden="true">⚠</span> {error}</div>}
           <div className="modal-footer" style={{ paddingTop: 8 }}>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? <span className="btn-spinner" /> : null}
@@ -66,14 +78,15 @@ const ROLE_BADGE = { student: 'badge-blue', instructor: 'badge-primary', employe
 
 export default function AdminUsersPage() {
   const { currentUser } = useAuth()
-  const [users,       setUsers]       = useState(() => store.getAllUsers().filter(u => u.role !== 'admin'))
+  const [users,       setUsers]       = useState(() => store.getAllUsers())
   const [filter,      setFilter]      = useState('all')
   const [search,      setSearch]      = useState('')
   const [toast,       setToast]       = useState('')
+  const [showCreateAdmin, setShowCreateAdmin] = useState(false)
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
-  const refresh = () => setUsers(store.getAllUsers().filter(u => u.role !== 'admin'))
+  const refresh = () => setUsers(store.getAllUsers())
 
   const handleToggleActive = (user) => {
     if (user.id === currentUser.id) { showToast("You can't deactivate your own account."); return }
@@ -82,7 +95,7 @@ export default function AdminUsersPage() {
     showToast(`Account ${!user.isActive ? 'activated' : 'deactivated'}.`)
   }
 
-  const roles  = ['all', 'student', 'instructor', 'employer']
+  const roles  = ['all', 'student', 'instructor', 'employer', 'admin']
   const counts = Object.fromEntries(roles.map(r => [r, r === 'all' ? users.length : users.filter(u => u.role === r).length]))
 
   const filtered = users.filter(u => {
@@ -102,11 +115,22 @@ export default function AdminUsersPage() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Users</h1>
-          <p className="page-subtitle">Manage platform users — students, instructors, and employers.</p>
         </div>
+        <button className="btn btn-primary" onClick={() => setShowCreateAdmin(true)}>
+          Create admin
+        </button>
       </div>
 
       {toast && <div className="toast toast-success">{toast}</div>}
+      {showCreateAdmin && (
+        <CreateAdminModal
+          onClose={() => setShowCreateAdmin(false)}
+          onCreate={() => {
+            refresh()
+            showToast('Admin account created.')
+          }}
+        />
+      )}
 
       {/* Filter tabs */}
       <div className="filter-tabs" style={{ marginBottom: 16 }}>
@@ -126,7 +150,7 @@ export default function AdminUsersPage() {
         <div className="search-bar">
           <span className="search-icon" aria-hidden="true">🔍</span>
           <input
-            type="search"
+            type="text"
             placeholder="Search by name or email…"
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -144,7 +168,7 @@ export default function AdminUsersPage() {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
+              <th>Email / Username</th>
               <th>Role</th>
               <th>Status</th>
               <th>Actions</th>
@@ -177,8 +201,6 @@ export default function AdminUsersPage() {
                   <button
                     className={`btn btn-sm ${u.isActive ? 'btn-danger' : 'btn-primary'}`}
                     onClick={() => handleToggleActive(u)}
-                    disabled={u.id === currentUser.id}
-                    title={u.id === currentUser.id ? 'Cannot deactivate your own account' : ''}
                   >
                     {u.isActive ? 'Deactivate' : 'Activate'}
                   </button>

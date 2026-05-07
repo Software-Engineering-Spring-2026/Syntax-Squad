@@ -15,6 +15,7 @@ const NAV_LINKS = {
   ],
   instructor: [
     { to: '/',                  label: 'Home'            },
+    { to: '/courses',           label: 'Courses'         },
     { to: '/browse/projects',   label: 'Browse Projects' },
     { to: '/browse/portfolios', label: 'Portfolios'      },
     { to: '/instructors',       label: 'Instructors'     },
@@ -23,6 +24,7 @@ const NAV_LINKS = {
     { to: '/',                  label: 'Home'       },
     { to: '/browse/projects',   label: 'Browse'     },
     { to: '/browse/portfolios', label: 'Portfolios' },
+    { to: '/instructors',       label: 'Instructors'},
     { to: '/my-internships',    label: 'Internships'},
     { to: '/messages',          label: 'Messages'   },
   ],

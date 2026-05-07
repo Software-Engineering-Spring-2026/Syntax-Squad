@@ -271,14 +271,16 @@ export default function LoginPage() {
             {/* Email */}
             <div className="form-field">
               <label htmlFor="email" className="field-label">
-                {isEmployer ? 'Company email' : 'Email address'}
+                {tab === 'signin' ? 'Email or admin username' : isEmployer ? 'Company email' : 'Email address'}
               </label>
               <input
                 id="email"
-                type="email"
-                autoComplete="email"
+                type={tab === 'signin' ? 'text' : 'email'}
+                autoComplete={tab === 'signin' ? 'username' : 'email'}
                 placeholder={
-                  isEmployer
+                  tab === 'signin'
+                    ? 'your@guc.edu.eg or admin'
+                    : isEmployer
                     ? 'company@example.com'
                     : tab === 'signup'
                     ? 'name@student.guc.edu.eg'

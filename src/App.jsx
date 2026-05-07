@@ -15,6 +15,7 @@ import InstructorProfilePage      from './pages/profile/InstructorProfilePage'
 import EmployerProfilePage        from './pages/profile/EmployerProfilePage'
 import InstructorSearchPage       from './pages/profile/InstructorSearchPage'
 import InstructorProfileViewPage  from './pages/profile/InstructorProfileViewPage'
+import CoursesListPage            from './pages/courses/CoursesListPage'
 
 // Notification page
 import NotificationsPage from './pages/notifications/NotificationsPage'
@@ -27,6 +28,7 @@ import AdminUsersPage    from './pages/admin/AdminUsersPage'
 import AdminCoursesPage  from './pages/admin/AdminCoursesPage'
 import AdminLinkRequestsPage from './pages/admin/AdminLinkRequestsPage'
 import AdminFlaggedPage  from './pages/admin/AdminFlaggedPage'
+import AdminProjectsPage from './pages/admin/AdminProjectsPage'
 
 import './App.css'
 
@@ -113,6 +115,12 @@ function AppRoutes() {
         </RequireAuth>
       } />
 
+      <Route path="/courses" element={
+        <RequireAuth roles={['instructor']}>
+          <AppLayout><CoursesListPage /></AppLayout>
+        </RequireAuth>
+      } />
+
       {/* Notifications */}
       <Route path="/notifications" element={
         <RequireAuth>
@@ -126,6 +134,7 @@ function AppRoutes() {
         <Route path="employers" element={<AdminEmployersPage />} />
         <Route path="users"     element={<AdminUsersPage />} />
         <Route path="courses"   element={<AdminCoursesPage />} />
+        <Route path="projects"  element={<AdminProjectsPage />} />
         <Route path="link-requests" element={<AdminLinkRequestsPage />} />
         <Route path="flagged"   element={<AdminFlaggedPage />} />
       </Route>

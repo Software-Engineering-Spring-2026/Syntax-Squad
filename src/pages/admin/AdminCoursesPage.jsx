@@ -133,7 +133,7 @@ export default function AdminCoursesPage() {
         <div className="search-bar">
           <span className="search-icon" aria-hidden="true">🔍</span>
           <input
-            type="search"
+            type="text"
             placeholder="Search courses by name or code…"
             value={search}
             onChange={e => setSearch(e.target.value)}

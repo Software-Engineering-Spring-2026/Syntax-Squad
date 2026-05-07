@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import store from '../../data/DummyDataStore'
+import { useAuth } from '../../context/AuthContext'
 
 function InstructorCard({ instructor }) {
   const courses   = store.getInstructorCourses(instructor.id)
@@ -43,9 +44,11 @@ function InstructorCard({ instructor }) {
 }
 
 export default function InstructorSearchPage() {
+  const { currentUser } = useAuth()
   const [query,       setQuery]       = useState('')
   const [instructors, setInstructors] = useState([])
   const [loading,     setLoading]     = useState(false)
+  const backTo = currentUser?.role === 'admin' ? '/admin' : '/'
 
   useEffect(() => {
     setLoading(true)
@@ -58,6 +61,10 @@ export default function InstructorSearchPage() {
 
   return (
     <div className="page-container">
+      <Link to={backTo} className="back-link">
+        ← Back
+      </Link>
+
       <div className="page-header">
         <div>
           <h1 className="page-title">Course Instructors</h1>
@@ -70,7 +77,7 @@ export default function InstructorSearchPage() {
         <div className="search-bar">
           <span className="search-icon" aria-hidden="true">🔍</span>
           <input
-            type="search"
+            type="text"
             placeholder="Search by name or course (e.g. CSEN603, Mohamed)"
             value={query}
             onChange={e => setQuery(e.target.value)}

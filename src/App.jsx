@@ -16,6 +16,7 @@ import EmployerProfilePage        from './pages/profile/EmployerProfilePage'
 import InstructorSearchPage       from './pages/profile/InstructorSearchPage'
 import InstructorProfileViewPage  from './pages/profile/InstructorProfileViewPage'
 import CoursesListPage            from './pages/courses/CoursesListPage'
+import BrowseProjectsPage         from './pages/projects/BrowseProjectsPage'
 
 // Notification page
 import NotificationsPage from './pages/notifications/NotificationsPage'
@@ -145,7 +146,7 @@ function AppRoutes() {
       <Route path="/projects/:id"  element={<RequireAuth><AppLayout><Placeholder title="Project Details" /></AppLayout></RequireAuth>} />
 
       {/* Member 4: Browse & Discovery */}
-      <Route path="/browse/projects"   element={<RequireAuth><AppLayout><Placeholder title="Browse Projects" /></AppLayout></RequireAuth>} />
+      <Route path="/browse/projects"   element={<RequireAuth><AppLayout><BrowseProjectsPage /></AppLayout></RequireAuth>} />
       <Route path="/browse/portfolios" element={<RequireAuth><AppLayout><Placeholder title="Browse Portfolios" /></AppLayout></RequireAuth>} />
       <Route path="/portfolios/:id"    element={<RequireAuth><AppLayout><Placeholder title="Portfolio" /></AppLayout></RequireAuth>} />
 

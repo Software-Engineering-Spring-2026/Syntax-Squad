@@ -47,6 +47,7 @@
 .btn-sm       { padding: 6px 12px; font-size: 13px; border-radius: var(--radius-sm); }
 .btn-full     { width: 100%; }
 .btn-spinner  { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.project-action-btn { min-width: 78px; height: 28px; padding: 4px 10px; font-size: 12px; }
 
 /* ── Alerts / banners ───────────────────────────────────────── */
 .alert {

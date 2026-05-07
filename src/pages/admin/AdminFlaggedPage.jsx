@@ -187,7 +187,7 @@ export default function AdminFlaggedPage() {
                       Review
                     </button>
                     <button
-                      className={`btn btn-sm ${project.isActive ? 'btn-danger' : 'btn-primary'}`}
+                      className={`btn btn-sm project-action-btn ${project.isActive ? 'btn-danger' : 'btn-primary'}`}
                       onClick={() => handleAction(project.isActive ? 'deactivate' : 'activate', project.id)}
                     >
                       {project.isActive ? 'Deactivate' : 'Activate'}

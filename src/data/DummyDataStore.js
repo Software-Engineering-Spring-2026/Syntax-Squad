@@ -673,6 +673,37 @@ class DummyDataStore {
     return { ok: true }
   }
 
+  flagProject(id, reason, flaggedBy) {
+    const trimmedReason = reason?.trim()
+    if (!trimmedReason) return { ok: false, error: 'Flag reason is required.' }
+    const project = this.data.projects.find(p => p.id === id)
+    if (!project) return { ok: false, error: 'Project not found.' }
+
+    const shouldDeactivate = !project.appeal?.trim()
+    const projects = this.data.projects.map(p =>
+      p.id === id
+        ? {
+            ...p,
+            isFlagged: true,
+            flagReason: trimmedReason,
+            flaggedBy,
+            isActive: shouldDeactivate ? false : p.isActive,
+          }
+        : p
+    )
+    this._persist({ ...this.data, projects })
+
+    const owner = this.getUserById(project.ownerId, 'student')
+    if (owner) {
+      const msg = shouldDeactivate
+        ? `Your project "${project.title}" was flagged and deactivated. Reason: ${trimmedReason}`
+        : `Your project "${project.title}" was flagged. Reason: ${trimmedReason}`
+      this.addNotification(project.ownerId, msg, 'project_flagged')
+    }
+
+    return { ok: true, deactivated: shouldDeactivate }
+  }
+
   unflagProject(id) {
     const projects = this.data.projects.map(p =>
       p.id === id ? { ...p, isFlagged: false, flagReason: null, isActive: true } : p

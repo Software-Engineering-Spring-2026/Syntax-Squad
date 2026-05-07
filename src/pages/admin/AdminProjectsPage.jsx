@@ -1,11 +1,23 @@
 import { useState } from 'react'
+import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
-function ProjectModal({ project, onClose, onAction }) {
+function ProjectModal({ project, onClose, onAction, onFlag }) {
   const owner = store.getUserById(project.ownerId, 'student')
   const course = store.getCourses().find((c) => c.id === project.courseId)
   const flagger = project.flaggedBy ? store.getUserById(project.flaggedBy, 'instructor') : null
   const ownerName = owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown'
+  const [flagReason, setFlagReason] = useState('')
+  const [flagError, setFlagError] = useState('')
+
+  const handleFlag = () => {
+    if (!flagReason.trim()) {
+      setFlagError('Flag reason is required.')
+      return
+    }
+    onFlag(project.id, flagReason.trim())
+    onClose()
+  }
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">
@@ -58,23 +70,43 @@ function ProjectModal({ project, onClose, onAction }) {
               <p className="muted-text" style={{ marginTop: 6, fontSize: 14 }}>No appeal submitted.</p>
             </div>
           )}
+
+          {!project.isFlagged && (
+            <div className="form-field" style={{ marginTop: 16 }}>
+              <label className="field-label">Flag reason</label>
+              <textarea
+                className={`field-textarea ${flagError ? 'field-input-error' : ''}`}
+                rows={3}
+                placeholder="Explain the policy violation (e.g. plagiarism)."
+                value={flagReason}
+                onChange={(e) => { setFlagReason(e.target.value); setFlagError('') }}
+              />
+              {flagError && <span className="field-error" role="alert">{flagError}</span>}
+              {!project.appeal && <span className="field-hint">Flagging will automatically deactivate this project because no appeal was sent.</span>}
+            </div>
+          )}
         </div>
         <div className="modal-footer">
+          {!project.isFlagged && (
+            <button className="btn btn-danger btn-sm project-action-btn" onClick={handleFlag}>
+              Flag project
+            </button>
+          )}
           {project.isActive ? (
-            <button className="btn btn-danger" onClick={() => { onAction('deactivate', project.id); onClose() }}>
+            <button className="btn btn-danger btn-sm project-action-btn" onClick={() => { onAction('deactivate', project.id); onClose() }}>
               Deactivate project
             </button>
           ) : (
-            <button className="btn btn-primary" onClick={() => { onAction('activate', project.id); onClose() }}>
+            <button className="btn btn-primary btn-sm project-action-btn" onClick={() => { onAction('activate', project.id); onClose() }}>
               Reactivate project
             </button>
           )}
           {project.isFlagged && (
-            <button className="btn btn-outline" onClick={() => { onAction('unflag', project.id); onClose() }}>
+            <button className="btn btn-outline btn-sm project-action-btn" onClick={() => { onAction('unflag', project.id); onClose() }}>
               Mark as resolved (unflag)
             </button>
           )}
-          <button className="btn btn-outline" onClick={onClose}>Close</button>
+          <button className="btn btn-outline btn-sm project-action-btn" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>
@@ -82,6 +114,7 @@ function ProjectModal({ project, onClose, onAction }) {
 }
 
 export default function AdminProjectsPage() {
+  const { currentUser } = useAuth()
   const [projects, setProjects] = useState(() => store.getProjects())
   const [selected, setSelected] = useState(null)
   const [toast, setToast] = useState('')
@@ -100,6 +133,16 @@ export default function AdminProjectsPage() {
       store.unflagProject(id)
       showToast('Project unflagged and reactivated.')
     }
+    refresh()
+  }
+
+  const handleFlag = (id, reason) => {
+    const result = store.flagProject(id, reason, currentUser.id)
+    if (!result.ok) {
+      showToast(result.error)
+      return
+    }
+    showToast(result.deactivated ? 'Project flagged and deactivated.' : 'Project flagged.')
     refresh()
   }
 
@@ -167,7 +210,7 @@ export default function AdminProjectsPage() {
                       Review
                     </button>
                     <button
-                      className={`btn btn-sm ${p.isActive ? 'btn-danger' : 'btn-primary'}`}
+                      className={`btn btn-sm project-action-btn ${p.isActive ? 'btn-danger' : 'btn-primary'}`}
                       onClick={() => handleAction(p.isActive ? 'deactivate' : 'activate', p.id)}
                     >
                       {p.isActive ? 'Deactivate' : 'Activate'}
@@ -185,6 +228,7 @@ export default function AdminProjectsPage() {
           project={selected}
           onClose={() => setSelected(null)}
           onAction={handleAction}
+          onFlag={handleFlag}
         />
       )}
     </div>

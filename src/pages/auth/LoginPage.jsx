@@ -36,7 +36,7 @@ export default function LoginPage() {
   const [loading,         setLoading]         = useState(false)
 
   useEffect(() => {
-    if (currentUser) navigate('/', { replace: true })
+    if (currentUser) navigate(currentUser.role === 'admin' ? '/admin' : '/', { replace: true })
   }, [currentUser, navigate])
 
   useEffect(() => {
@@ -94,6 +94,8 @@ export default function LoginPage() {
       const result = store.authenticate(email, password)
       if (!result.ok) { setError(result.error); setLoading(false); return }
       login(result.user, remember)
+      navigate(result.user.role === 'admin' ? '/admin' : '/', { replace: true })
+      return
     }
 
     navigate('/', { replace: true })

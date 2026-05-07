@@ -109,14 +109,15 @@ export default function StudentProfilePage() {
     firstName:  currentUser.firstName  ?? '',
     lastName:   currentUser.lastName   ?? '',
     major:      currentUser.major      ?? '',
+    otherMajor: currentUser.otherMajor ?? '',
     skills:     currentUser.skills     ?? [],
     linkedIn:   currentUser.linkedIn   ?? '',
     profilePicture: currentUser.profilePicture ?? null,
   })
   const [saved,  setSaved]  = useState(false)
-  const [error,  setError]  = useState('')
   const [saving, setSaving] = useState(false)
   const [dirty,  setDirty]  = useState(false)
+  const [attempted, setAttempted] = useState(false)
 
   const set = (key, val) => {
     setForm(f => ({ ...f, [key]: val }))
@@ -126,11 +127,13 @@ export default function StudentProfilePage() {
 
   const handleSave = async (e) => {
     e.preventDefault()
-    if (!form.firstName.trim() || !form.lastName.trim()) {
-      setError('First and last name are required.')
+    setAttempted(true)
+    const isOther = form.major === 'Other'
+    const missingMajor = !form.major
+    const missingOther = isOther && !form.otherMajor.trim()
+    if (!form.firstName.trim() || !form.lastName.trim() || missingMajor || missingOther) {
       return
     }
-    setError('')
     setSaving(true)
     await new Promise(r => setTimeout(r, 400))
     store.updateStudent(currentUser.id, form)
@@ -139,6 +142,12 @@ export default function StudentProfilePage() {
     setSaved(true)
     setDirty(false)
   }
+
+  const showFirstError = attempted && !form.firstName.trim()
+  const showLastError = attempted && !form.lastName.trim()
+  const showMajorError = attempted && !form.major
+  const showOtherMajorError =
+    attempted && form.major === 'Other' && !form.otherMajor.trim()
 
   return (
     <div className="page-container">
@@ -172,37 +181,60 @@ export default function StudentProfilePage() {
               <input
                 id="pf-first"
                 type="text"
-                className="field-input"
+                className={`field-input ${showFirstError ? 'field-input-error' : ''}`}
                 value={form.firstName}
                 onChange={e => set('firstName', e.target.value)}
                 required
               />
+              {showFirstError && <span className="field-error">First name is required.</span>}
             </div>
             <div className="form-field">
               <label htmlFor="pf-last" className="field-label">Last name <span className="required">*</span></label>
               <input
                 id="pf-last"
                 type="text"
-                className="field-input"
+                className={`field-input ${showLastError ? 'field-input-error' : ''}`}
                 value={form.lastName}
                 onChange={e => set('lastName', e.target.value)}
                 required
               />
+              {showLastError && <span className="field-error">Last name is required.</span>}
             </div>
           </div>
 
           <div className="form-field">
-            <label htmlFor="pf-major" className="field-label">Major</label>
+            <label htmlFor="pf-major" className="field-label">Major <span className="required">*</span></label>
             <select
               id="pf-major"
               className="field-select"
               value={form.major}
-              onChange={e => set('major', e.target.value)}
+              onChange={e => {
+                set('major', e.target.value)
+                if (e.target.value !== 'Other') {
+                  setForm(f => ({ ...f, otherMajor: '' }))
+                }
+              }}
             >
-              <option value="">— Select your major —</option>
               {MAJORS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
+            {showMajorError && <span className="field-error">Major is required.</span>}
           </div>
+
+          {form.major === 'Other' && (
+            <div className="form-field">
+              <label htmlFor="pf-other-major" className="field-label">Other major <span className="required">*</span></label>
+              <input
+                id="pf-other-major"
+                type="text"
+                className={`field-input ${showOtherMajorError ? 'field-input-error' : ''}`}
+                placeholder="Enter your major"
+                value={form.otherMajor}
+                onChange={e => set('otherMajor', e.target.value)}
+                required
+              />
+              {showOtherMajorError && <span className="field-error">Other major is required.</span>}
+            </div>
+          )}
 
           <div className="form-field">
             <label className="field-label">Skills</label>
@@ -227,7 +259,6 @@ export default function StudentProfilePage() {
             </span>
           </div>
 
-          {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
           {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true">✓</span> Profile saved successfully.</div>}
 
           <div className="form-actions">
@@ -248,12 +279,13 @@ export default function StudentProfilePage() {
                     firstName:  currentUser.firstName  ?? '',
                     lastName:   currentUser.lastName   ?? '',
                     major:      currentUser.major      ?? '',
+                    otherMajor: currentUser.otherMajor ?? '',
                     skills:     currentUser.skills     ?? [],
                     linkedIn:   currentUser.linkedIn   ?? '',
                     profilePicture: currentUser.profilePicture ?? null,
                   })
                   setDirty(false)
-                  setError('')
+                  setAttempted(false)
                 }}
               >
                 Discard changes

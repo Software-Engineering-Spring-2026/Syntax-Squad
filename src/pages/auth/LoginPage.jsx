@@ -35,6 +35,8 @@ export default function LoginPage() {
   const [error,           setError]           = useState('')
   const [authError,       setAuthError]       = useState('')
   const [loading,         setLoading]         = useState(false)
+  const [signupSuccess,   setSignupSuccess]   = useState(false)
+  const [successEmail,    setSuccessEmail]    = useState('')
 
   useEffect(() => {
     if (currentUser) navigate(currentUser.role === 'admin' ? '/admin' : '/', { replace: true })
@@ -51,6 +53,8 @@ export default function LoginPage() {
     setLastName('')
     setCompanyName('')
     setEmailBlurred(false)
+    setSignupSuccess(false)
+    setSuccessEmail('')
   }, [tab, role])
 
   const isEmployer = tab === 'signup' && role === 'employer'
@@ -70,6 +74,12 @@ export default function LoginPage() {
   const showFirstNameError = attempted && tab === 'signup' && !isEmployer && !firstName.trim()
   const showLastNameError = attempted && tab === 'signup' && !isEmployer && !lastName.trim()
   const showCompanyNameError = attempted && tab === 'signup' && isEmployer && !companyName.trim()
+  const showMismatchError =
+    attempted &&
+    tab === 'signup' &&
+    password.trim() &&
+    confirm.trim() &&
+    password !== confirm
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -98,7 +108,10 @@ export default function LoginPage() {
       }
 
       if (!result.ok) { setError(result.error); setLoading(false); return }
-      login(result.user, false)
+      setSignupSuccess(true)
+      setSuccessEmail(email)
+      setLoading(false)
+      return
     } else {
       const result = store.authenticate(email, password)
       if (!result.ok) {
@@ -116,29 +129,6 @@ export default function LoginPage() {
 
   return (
     <div className="login-split">
-      {/* ── Left brand panel ─────────────────────────────────────────── */}
-      <div className="login-brand" aria-hidden="true">
-        <div className="brand-content">
-          <div className="brand-logo">
-            <span className="brand-gem-lg">◈</span>
-            <span className="brand-title">GUC Portfolio</span>
-          </div>
-          <p className="brand-tagline">
-            Showcase your work.<br />Connect with opportunities.
-          </p>
-          <ul className="brand-features">
-            <li>Build a portfolio that stands out</li>
-            <li>Collaborate with peers &amp; instructors</li>
-            <li>Apply for internships with top companies</li>
-            <li>Get discovered by employers worldwide</li>
-          </ul>
-          <p className="brand-note">
-            Trusted by GUC students, instructors &amp; companies
-          </p>
-        </div>
-      </div>
-
-      {/* ── Right form panel ─────────────────────────────────────────── */}
       <div className="login-form-panel">
         <div className="login-card" role="main">
           {/* Tabs */}
@@ -165,7 +155,39 @@ export default function LoginPage() {
             {tab === 'signin' ? 'Welcome back' : 'Create account'}
           </h1>
 
-          <form onSubmit={handleSubmit} noValidate className="auth-form">
+          {tab === 'signup' && signupSuccess ? (
+            <div className="auth-success" role="status">
+              <div className="success-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="presentation">
+                  <circle cx="12" cy="12" r="10" fill="#4f8abf" opacity="0.15" />
+                  <path
+                    d="M7.5 12.5l3 3 6-6"
+                    fill="none"
+                    stroke="#4f8abf"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <h2 className="success-title">Account created successfully!</h2>
+              <p className="auth-subtitle">
+                Your account has been created. Please log in with your credentials to get started.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  setTab('signin')
+                  setEmail(successEmail)
+                  setPassword('')
+                }}
+              >
+                Login to get started
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate className="auth-form">
 
             {/* Role tabs (signup only) */}
             {tab === 'signup' && (
@@ -293,8 +315,8 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className={`field-input ${showPasswordError || showAuthError ? 'field-input-error' : ''}`}
-                  aria-invalid={showPasswordError || showAuthError}
+                  className={`field-input ${showPasswordError || showAuthError || showMismatchError ? 'field-input-error' : ''}`}
+                  aria-invalid={showPasswordError || showAuthError || showMismatchError}
                   required
                 />
                 <button
@@ -326,8 +348,8 @@ export default function LoginPage() {
                     placeholder="Repeat your password"
                     value={confirm}
                     onChange={e => setConfirm(e.target.value)}
-                    className={`field-input ${showConfirmError ? 'field-input-error' : ''}`}
-                    aria-invalid={showConfirmError}
+                    className={`field-input ${showConfirmError || showMismatchError ? 'field-input-error' : ''}`}
+                    aria-invalid={showConfirmError || showMismatchError}
                     required
                   />
                   <button
@@ -339,6 +361,9 @@ export default function LoginPage() {
                     <EyeIcon visible={showConfirm} />
                   </button>
                 </div>
+                {showMismatchError && (
+                  <span className="field-error" role="alert">Passwords do not match.</span>
+                )}
               </div>
             )}
 
@@ -358,14 +383,6 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Error banner */}
-            {error && (
-              <div className="alert alert-error" role="alert">
-                <span className="alert-icon" aria-hidden="true">⚠</span>
-                {error}
-              </div>
-            )}
-
             {/* Employer pending notice */}
             {tab === 'signup' && isEmployer && (
               <div className="alert alert-info">
@@ -379,6 +396,7 @@ export default function LoginPage() {
               {loading ? 'Please wait…' : tab === 'signup' ? 'Create account' : 'Sign in'}
             </button>
           </form>
+          )}
         </div>
       </div>
     </div>

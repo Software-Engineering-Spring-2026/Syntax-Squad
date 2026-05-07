@@ -91,15 +91,23 @@ export default function Navbar() {
     navigate('/login')
   }
 
+  const handleNotificationsClick = () => {
+    setMenuOpen(false)
+    if (location.pathname === '/notifications') {
+      const from = location.state?.from
+      if (from?.pathname) {
+        navigate(from.pathname + (from.search ?? '') + (from.hash ?? ''))
+      } else {
+        navigate('/')
+      }
+      return
+    }
+    navigate('/notifications', { state: { from: location } })
+  }
+
   return (
     <nav className="navbar" aria-label="Main navigation">
       <div className="navbar-inner">
-
-        {/* Brand */}
-        <Link className="navbar-brand" to="/" onClick={() => setMenuOpen(false)}>
-          <span className="brand-gem" aria-hidden="true">◈</span>
-          <span className="brand-name">GUC Portfolio</span>
-        </Link>
 
         {/* Desktop links */}
         <div className={`navbar-links ${menuOpen ? 'nav-open' : ''}`} role="menubar">
@@ -119,11 +127,11 @@ export default function Navbar() {
         {/* Right actions */}
         <div className="navbar-actions">
           {/* Notification bell */}
-          <Link
-            to="/notifications"
+          <button
+            type="button"
             className="notif-btn"
             aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
-            onClick={() => setMenuOpen(false)}
+            onClick={handleNotificationsClick}
           >
             <BellIcon />
             {unread > 0 && (
@@ -131,7 +139,7 @@ export default function Navbar() {
                 {unread > 99 ? '99+' : unread}
               </span>
             )}
-          </Link>
+          </button>
 
           {/* User menu */}
           <div className="user-menu" ref={dropRef}>
@@ -171,15 +179,15 @@ export default function Navbar() {
                     My Profile
                   </Link>
                 )}
-                <Link
-                  to="/notifications"
+                <button
+                  type="button"
                   className="dropdown-item"
                   role="menuitem"
-                  onClick={() => setDropOpen(false)}
+                  onClick={() => { setDropOpen(false); handleNotificationsClick() }}
                 >
                   Notifications
                   {unread > 0 && <span className="dropdown-badge">{unread}</span>}
-                </Link>
+                </button>
                 <div className="dropdown-divider" />
                 <button
                   className="dropdown-item dropdown-item-danger"

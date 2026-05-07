@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/admin/employers',label: 'Employers',        icon: '🏢'            },
   { to: '/admin/users',    label: 'Users',            icon: '👥'            },
   { to: '/admin/courses',  label: 'Courses',          icon: '📚'            },
+  { to: '/admin/link-requests', label: 'Link Requests', icon: '🔗'          },
   { to: '/admin/flagged',  label: 'Flagged Projects', icon: '🚩'            },
 ]
 
@@ -38,7 +39,7 @@ export default function AdminLayout() {
 
   const getBadge = (label) => {
     if (label === 'Employers')        return pendingEmployers
-    if (label === 'Courses')          return pendingLinks
+    if (label === 'Link Requests')    return pendingLinks
     if (label === 'Dashboard')        return unread
     return 0
   }
@@ -53,10 +54,6 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'sidebar-open' : ''}`} aria-label="Admin navigation">
         <div className="sidebar-header">
-          <Link to="/admin" className="sidebar-brand" onClick={() => setSidebarOpen(false)}>
-            <span className="brand-gem" aria-hidden="true">◈</span>
-            <span className="sidebar-brand-name">GUC Portfolio</span>
-          </Link>
           <span className="sidebar-admin-tag">Admin</span>
         </div>
 
@@ -109,7 +106,6 @@ export default function AdminLayout() {
           >
             <span /><span /><span />
           </button>
-          <span className="admin-topbar-brand">GUC Portfolio Admin</span>
         </div>
 
         <main className="admin-main">

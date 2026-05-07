@@ -25,6 +25,7 @@ import AdminDashboard    from './pages/admin/AdminDashboard'
 import AdminEmployersPage from './pages/admin/AdminEmployersPage'
 import AdminUsersPage    from './pages/admin/AdminUsersPage'
 import AdminCoursesPage  from './pages/admin/AdminCoursesPage'
+import AdminLinkRequestsPage from './pages/admin/AdminLinkRequestsPage'
 import AdminFlaggedPage  from './pages/admin/AdminFlaggedPage'
 
 import './App.css'
@@ -125,6 +126,7 @@ function AppRoutes() {
         <Route path="employers" element={<AdminEmployersPage />} />
         <Route path="users"     element={<AdminUsersPage />} />
         <Route path="courses"   element={<AdminCoursesPage />} />
+        <Route path="link-requests" element={<AdminLinkRequestsPage />} />
         <Route path="flagged"   element={<AdminFlaggedPage />} />
       </Route>
 

@@ -51,12 +51,11 @@ function WelcomeBanner({ user }) {
     <div className="welcome-banner">
       <div>
         <h1 className="welcome-title">{greeting()}, {name} 👋</h1>
-        <p className="welcome-sub">
-          Signed in as <strong>{roleLabel}</strong>
-          {user.role === 'employer' && user.status === 'pending' && (
-            <span className="badge badge-warning" style={{ marginLeft: 8 }}>Pending approval</span>
-          )}
-        </p>
+        {user.role === 'employer' && user.status === 'pending' && (
+          <p className="welcome-sub">
+            <span className="badge badge-warning">Pending approval</span>
+          </p>
+        )}
       </div>
       {user.role !== 'admin' && (
         <Link

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
@@ -22,6 +23,7 @@ function timeAgo(iso) {
 
 export default function NotificationsPage() {
   const { currentUser, refreshUser } = useAuth()
+  const navigate = useNavigate()
   const [notifications, setNotifications] = useState(
     () => store.getNotifications(currentUser.id)
   )
@@ -32,7 +34,7 @@ export default function NotificationsPage() {
   const refresh = () => setNotifications(store.getNotifications(currentUser.id))
 
   const handleToggleRead = (id, isRead) => {
-    store.markNotificationRead(id, isRead)
+    store.markNotificationRead(id, !isRead)
     refresh()
   }
 
@@ -57,6 +59,20 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="page-header" style={{ flexWrap: 'wrap', gap: 12 }}>
         <div>
+          {currentUser.role === 'admin' && (
+            <button
+              type="button"
+              className="text-link"
+              onClick={() => navigate(-1)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 8 }}
+              aria-label="Go back"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Back
+            </button>
+          )}
           <h1 className="page-title">
             Notifications
             {unreadCount > 0 && (
@@ -123,6 +139,15 @@ export default function NotificationsPage() {
               key={n.id}
               role="listitem"
               className={`notif-item ${!n.isRead ? 'notif-item-unread' : ''}`}
+              onClick={() => handleToggleRead(n.id, n.isRead)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleToggleRead(n.id, n.isRead)
+                }
+              }}
+              tabIndex={0}
+              aria-label={n.isRead ? 'Notification, read' : 'Notification, unread'}
             >
               <span className="notif-type-icon" aria-hidden="true">
                 {TYPE_ICONS[n.type] ?? '🔔'}
@@ -131,18 +156,6 @@ export default function NotificationsPage() {
                 <p className="notif-message">{n.message}</p>
                 <span className="notif-time muted-text">{timeAgo(n.createdAt)}</span>
               </div>
-              <button
-                type="button"
-                className="notif-toggle-btn"
-                onClick={() => handleToggleRead(n.id, !n.isRead)}
-                aria-label={n.isRead ? 'Mark as unread' : 'Mark as read'}
-                title={n.isRead ? 'Mark as unread' : 'Mark as read'}
-              >
-                {n.isRead
-                  ? <span className="notif-dot-outline" aria-hidden="true" />
-                  : <span className="notif-dot-filled" aria-hidden="true" />
-                }
-              </button>
             </div>
           ))
         )}

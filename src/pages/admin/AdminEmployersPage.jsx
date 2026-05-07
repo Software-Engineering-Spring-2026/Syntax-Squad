@@ -14,6 +14,21 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
   if (!employer) return null
   const docs = employer.documents ?? []
 
+  const handleView = (doc) => {
+    if (!doc?.dataUrl || typeof doc.dataUrl !== 'string') return
+    window.open(doc.dataUrl, '_blank', 'noopener')
+  }
+
+  const handleDownload = (doc) => {
+    if (!doc?.dataUrl || typeof doc.dataUrl !== 'string') return
+    const link = document.createElement('a')
+    link.href = doc.dataUrl
+    link.download = doc.name
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
+
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Employer details">
       <div className="modal-card">
@@ -70,15 +85,24 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
                         })}
                       </span>
                     </div>
-                    {/* Req 17: Download – in a real app this would download the file */}
-                    <button
-                      type="button"
-                      className="btn btn-outline btn-sm"
-                      onClick={() => alert(`In production, "${doc.name}" would be downloaded from the server.`)}
-                      title={`Download ${doc.name}`}
-                    >
-                      ↓ Download
-                    </button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => handleView(doc)}
+                        title={`View ${doc.name}`}
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => handleDownload(doc)}
+                        title={`Download ${doc.name}`}
+                      >
+                        Download
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

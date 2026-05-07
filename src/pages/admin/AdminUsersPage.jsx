@@ -66,15 +66,14 @@ const ROLE_BADGE = { student: 'badge-blue', instructor: 'badge-primary', employe
 
 export default function AdminUsersPage() {
   const { currentUser } = useAuth()
-  const [users,       setUsers]       = useState(() => store.getAllUsers())
+  const [users,       setUsers]       = useState(() => store.getAllUsers().filter(u => u.role !== 'admin'))
   const [filter,      setFilter]      = useState('all')
   const [search,      setSearch]      = useState('')
-  const [showCreate,  setShowCreate]  = useState(false)
   const [toast,       setToast]       = useState('')
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
-  const refresh = () => setUsers(store.getAllUsers())
+  const refresh = () => setUsers(store.getAllUsers().filter(u => u.role !== 'admin'))
 
   const handleToggleActive = (user) => {
     if (user.id === currentUser.id) { showToast("You can't deactivate your own account."); return }
@@ -83,7 +82,7 @@ export default function AdminUsersPage() {
     showToast(`Account ${!user.isActive ? 'activated' : 'deactivated'}.`)
   }
 
-  const roles  = ['all', 'student', 'instructor', 'employer', 'admin']
+  const roles  = ['all', 'student', 'instructor', 'employer']
   const counts = Object.fromEntries(roles.map(r => [r, r === 'all' ? users.length : users.filter(u => u.role === r).length]))
 
   const filtered = users.filter(u => {
@@ -103,11 +102,8 @@ export default function AdminUsersPage() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Users</h1>
-          <p className="page-subtitle">Manage all platform users — students, instructors, employers, and admins.</p>
+          <p className="page-subtitle">Manage platform users — students, instructors, and employers.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-          + Create admin
-        </button>
       </div>
 
       {toast && <div className="toast toast-success">{toast}</div>}
@@ -193,12 +189,6 @@ export default function AdminUsersPage() {
         </table>
       </div>
 
-      {showCreate && (
-        <CreateAdminModal
-          onClose={() => setShowCreate(false)}
-          onCreate={refresh}
-        />
-      )}
     </div>
   )
 }

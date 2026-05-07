@@ -36,6 +36,7 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
   const [docs,    setDocs]    = useState(initialDocs ?? [])
   const [error,   setError]   = useState('')
   const [success, setSuccess] = useState('')
+  const [pendingDoc, setPendingDoc] = useState('')
 
   const handleUpload = (e) => {
     const file = e.target.files[0]
@@ -43,19 +44,38 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
     setError('')
     if (file.size > MAX_DOC_SIZE) { setError('File must be under 10 MB.'); return }
     if (docs.some(d => d.name === file.name)) { setError(`"${file.name}" is already uploaded.`); return }
-    const doc = { name: file.name, uploadedAt: new Date().toISOString() }
-    const result = store.addEmployerDocument(employerId, doc)
-    if (!result.ok) { setError(result.error); return }
-    setDocs(prev => [...prev, doc])
-    setSuccess(`"${file.name}" uploaded successfully.`)
-    e.target.value = ''
+    const reader = new FileReader()
+    reader.onload = () => {
+      const doc = {
+        name: file.name,
+        uploadedAt: new Date().toISOString(),
+        dataUrl: reader.result,
+        mime: file.type || 'application/octet-stream',
+        size: file.size,
+      }
+      const result = store.addEmployerDocument(employerId, doc)
+      if (!result.ok) { setError(result.error); return }
+      setDocs(prev => [...prev, doc])
+      setSuccess(`"${file.name}" uploaded successfully.`)
+      setTimeout(() => setSuccess(''), 2500)
+      e.target.value = ''
+    }
+    reader.onerror = () => {
+      setError('Failed to read the file. Please try again.')
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleRemove = (docName) => {
-    if (!window.confirm(`Remove "${docName}"?`)) return
-    store.removeEmployerDocument(employerId, docName)
-    setDocs(prev => prev.filter(d => d.name !== docName))
+    setPendingDoc(docName)
+  }
+
+  const confirmRemove = () => {
+    if (!pendingDoc) return
+    store.removeEmployerDocument(employerId, pendingDoc)
+    setDocs(prev => prev.filter(d => d.name !== pendingDoc))
     setSuccess('')
+    setPendingDoc('')
   }
 
   const formatDate = (iso) =>
@@ -113,6 +133,36 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
         />
         <p className="field-hint" style={{ marginTop: 6 }}>PDF, JPG, PNG, DOC · max 10 MB per file</p>
       </div>
+
+      {pendingDoc && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card confirm-modal" aria-labelledby="delete-title">
+            <div className="modal-header">
+              <h3 className="modal-title" id="delete-title">Delete</h3>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setPendingDoc('')}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to delete this item?</p>
+              <p className="muted-text" style={{ fontSize: 12 }}>{pendingDoc}</p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-outline" onClick={() => setPendingDoc('')}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-danger" onClick={confirmRemove}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

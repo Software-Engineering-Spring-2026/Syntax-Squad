@@ -29,34 +29,48 @@ export default function PasswordResetPage() {
   const [step,     setStep]     = useState(1)
   const [email,    setEmail]    = useState('')
   const [otp,      setOtp]      = useState('')
-  const [demoOtp,  setDemoOtp]  = useState('')  // shown for demo purposes
   const [newPw,    setNewPw]    = useState('')
   const [confirmPw,setConfirmPw]= useState('')
   const [error,    setError]    = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [otpError, setOtpError] = useState('')
   const [loading,  setLoading]  = useState(false)
 
   const handleRequestOtp = async (e) => {
     e.preventDefault()
-    if (!email.trim()) { setError('Email is required.'); return }
+    if (!email.trim()) {
+      setEmailError('Email is required.')
+      return
+    }
     setError('')
+    setEmailError('')
     setLoading(true)
     await new Promise(r => setTimeout(r, 500))
     const result = store.generateOtp(email)
     setLoading(false)
-    if (!result.ok) { setError(result.error); return }
-    setDemoOtp(result.otp) // In production, this would not be shown
+    if (!result.ok) {
+      setEmailError('Email does not exist.')
+      return
+    }
     setStep(2)
   }
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault()
-    if (!otp.trim()) { setError('Please enter the OTP.'); return }
+    if (!otp.trim()) {
+      setOtpError('OTP is required.')
+      return
+    }
     setError('')
+    setOtpError('')
     setLoading(true)
     await new Promise(r => setTimeout(r, 400))
     const result = store.verifyOtp(email, otp)
     setLoading(false)
-    if (!result.ok) { setError(result.error); return }
+    if (!result.ok) {
+      setOtpError('OTP is incorrect.')
+      return
+    }
     setStep(3)
   }
 
@@ -100,10 +114,17 @@ export default function PasswordResetPage() {
                   autoComplete="email"
                   placeholder="your@guc.edu.eg"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="field-input"
+                  onChange={e => {
+                    setEmail(e.target.value)
+                    if (emailError) setEmailError('')
+                  }}
+                  className={`field-input ${emailError ? 'field-input-error' : ''}`}
+                  aria-invalid={!!emailError}
                   required
                 />
+                {emailError && (
+                  <span className="field-error" role="alert">{emailError}</span>
+                )}
               </div>
               {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
               <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
@@ -121,16 +142,6 @@ export default function PasswordResetPage() {
             <p className="auth-subtitle">
               A 6-digit code was sent to <strong>{email}</strong>.
             </p>
-            {/* Demo only: show OTP since there's no email system */}
-            {demoOtp && (
-              <div className="alert alert-info" style={{ marginBottom: 16 }}>
-                <span aria-hidden="true">🔑</span>&nbsp;
-                <strong>Demo OTP:</strong> {demoOtp}
-                <span style={{ fontSize: 12, display: 'block', marginTop: 4, opacity: 0.8 }}>
-                  (In production this would be emailed — not shown here)
-                </span>
-              </div>
-            )}
             <form onSubmit={handleVerifyOtp} noValidate className="auth-form">
               <div className="form-field">
                 <label htmlFor="otp" className="field-label">One-time passcode</label>
@@ -142,11 +153,18 @@ export default function PasswordResetPage() {
                   placeholder="123456"
                   maxLength={6}
                   value={otp}
-                  onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                  className="field-input mono"
+                  onChange={e => {
+                    setOtp(e.target.value.replace(/\D/g, ''))
+                    if (otpError) setOtpError('')
+                  }}
+                  className={`field-input mono ${otpError ? 'field-input-error' : ''}`}
                   style={{ letterSpacing: '0.25em', fontSize: 20, textAlign: 'center' }}
+                  aria-invalid={!!otpError}
                   required
                 />
+                {otpError && (
+                  <span className="field-error" role="alert">{otpError}</span>
+                )}
               </div>
               {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
               <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
@@ -156,7 +174,7 @@ export default function PasswordResetPage() {
               <button
                 type="button"
                 className="btn btn-outline btn-full"
-                onClick={() => { setStep(1); setOtp(''); setError('') }}
+                onClick={() => { setStep(1); setOtp(''); setError(''); setOtpError(''); setEmailError('') }}
               >
                 Resend OTP
               </button>

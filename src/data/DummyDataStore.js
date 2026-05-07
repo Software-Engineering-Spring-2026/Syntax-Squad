@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'syntax-squad-v2'
+const DEMO_OTP = '246810'
 
 const uid = (prefix) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
@@ -78,7 +79,12 @@ const defaultData = {
       contactInfo: '+20-2-1234-5678',
       location: '',
       profilePicture: null,
-      documents: [{ name: 'tax-certificate.pdf', uploadedAt: '2025-01-15T10:00:00Z' }],
+      documents: [{
+        name: 'tax-certificate.pdf',
+        uploadedAt: '2025-01-15T10:00:00Z',
+        mime: 'application/pdf',
+        dataUrl: 'data:text/plain;base64,U2FtcGxlIGRvY3VtZW50OiB0YXgtY2VydGlmaWNhdGUucGRmCg==',
+      }],
       status: 'accepted',
       isActive: true,
       notificationsEnabled: true,
@@ -94,7 +100,12 @@ const defaultData = {
       contactInfo: '+20-2-9876-5432',
       location: '',
       profilePicture: null,
-      documents: [{ name: 'commercial-registry.pdf', uploadedAt: '2025-02-10T09:00:00Z' }],
+      documents: [{
+        name: 'commercial-registry.pdf',
+        uploadedAt: '2025-02-10T09:00:00Z',
+        mime: 'application/pdf',
+        dataUrl: 'data:text/plain;base64,U2FtcGxlIGRvY3VtZW50OiBjb21tZXJjaWFsLXJlZ2lzdHJ5LnBkZgo=',
+      }],
       status: 'pending',
       isActive: true,
       notificationsEnabled: true,
@@ -111,8 +122,18 @@ const defaultData = {
       location: '',
       profilePicture: null,
       documents: [
-        { name: 'tax-certificate.pdf', uploadedAt: '2025-01-20T11:00:00Z' },
-        { name: 'license.pdf', uploadedAt: '2025-01-20T11:05:00Z' },
+        {
+          name: 'tax-certificate.pdf',
+          uploadedAt: '2025-01-20T11:00:00Z',
+          mime: 'application/pdf',
+          dataUrl: 'data:text/plain;base64,U2FtcGxlIGRvY3VtZW50OiB0YXgtY2VydGlmaWNhdGUucGRmCg==',
+        },
+        {
+          name: 'license.pdf',
+          uploadedAt: '2025-01-20T11:05:00Z',
+          mime: 'application/pdf',
+          dataUrl: 'data:text/plain;base64,U2FtcGxlIGRvY3VtZW50OiBsaWNlbnNlLnBkZgo=',
+        },
       ],
       status: 'rejected',
       isActive: false,
@@ -359,7 +380,7 @@ class DummyDataStore {
     const e = email.trim().toLowerCase()
     if (!this._emailExists(e)) return { ok: false, error: 'No account found with this email.' }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    const otp = DEMO_OTP
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 min
     const otps = this.data.otps.filter(o => o.email !== e)
     this._persist({ ...this.data, otps: [...otps, { email: e, otp, expiresAt }] })
@@ -636,7 +657,7 @@ class DummyDataStore {
     const students        = this.data.students.filter(u => u.role === 'student').length
     const instructors     = this.data.students.filter(u => u.role === 'instructor').length
     const employers       = this.data.employers.length
-    const totalUsers      = this.data.students.length + this.data.employers.length + this.data.admins.length
+    const totalUsers      = this.data.students.length + this.data.employers.length
     const totalProjects   = this.data.projects.length
     const totalCourses    = this.data.courses.length
     const pendingEmployers= this.data.employers.filter(e => e.status === 'pending').length

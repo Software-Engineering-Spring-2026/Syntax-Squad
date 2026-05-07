@@ -60,7 +60,7 @@ export default function AdminDashboard() {
 
       {/* Stat grid */}
       <div className="stat-grid">
-        <StatCard icon="👥" label="Total users"    value={stats.totalUsers}      color="blue"   />
+        <StatCard icon="👥" label="Total users"    value={stats.totalUsers}      color="blue"   to="/admin/users" />
         <StatCard icon="🎓" label="Students"        value={stats.students}        color="blue"   />
         <StatCard icon="📖" label="Instructors"     value={stats.instructors}     color="blue"   />
         <StatCard icon="🏢" label="Employers"       value={stats.employers}       color="blue"   to="/admin/employers" />
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
           label="Pending link requests"
           value={stats.pendingLinks}
           color={stats.pendingLinks > 0 ? 'warning' : 'green'}
-          to="/admin/courses"
+          to="/admin/link-requests"
           sub={stats.pendingLinks > 0 ? 'Awaiting review' : 'All clear'}
         />
         <StatCard
@@ -114,7 +114,14 @@ export default function AdminDashboard() {
             <span aria-hidden="true">📚</span>
             <div>
               <strong>Manage courses</strong>
-              <span className="muted-text">{stats.pendingLinks} link requests</span>
+              <span className="muted-text">{stats.totalCourses} total</span>
+            </div>
+          </Link>
+          <Link to="/admin/link-requests" className="quick-action-card">
+            <span aria-hidden="true">🔗</span>
+            <div>
+              <strong>Review link requests</strong>
+              <span className="muted-text">{stats.pendingLinks} pending</span>
             </div>
           </Link>
           <Link to="/admin/flagged" className="quick-action-card">

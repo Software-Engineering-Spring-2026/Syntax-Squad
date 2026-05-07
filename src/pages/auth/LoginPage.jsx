@@ -33,6 +33,7 @@ export default function LoginPage() {
   const [emailBlurred,    setEmailBlurred]    = useState(false)
   const [attempted,       setAttempted]       = useState(false)
   const [error,           setError]           = useState('')
+  const [authError,       setAuthError]       = useState('')
   const [loading,         setLoading]         = useState(false)
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     setError('')
+    setAuthError('')
     setAttempted(false)
     setEmail('')
     setPassword('')
@@ -62,11 +64,18 @@ export default function LoginPage() {
       : GUC_EMAIL.test(email)
 
   const showEmailError = (emailBlurred || attempted) && !emailValid
+  const showPasswordError = attempted && !password.trim()
+    const showAuthError = tab === 'signin' && authError
+  const showConfirmError = attempted && tab === 'signup' && !confirm.trim()
+  const showFirstNameError = attempted && tab === 'signup' && !isEmployer && !firstName.trim()
+  const showLastNameError = attempted && tab === 'signup' && !isEmployer && !lastName.trim()
+  const showCompanyNameError = attempted && tab === 'signup' && isEmployer && !companyName.trim()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setAttempted(true)
     setError('')
+    setAuthError('')
 
     if (!emailValid) return
     if (!password) { setError('Password is required.'); return }
@@ -92,7 +101,11 @@ export default function LoginPage() {
       login(result.user, false)
     } else {
       const result = store.authenticate(email, password)
-      if (!result.ok) { setError(result.error); setLoading(false); return }
+      if (!result.ok) {
+        setAuthError('Login or password is invalid.')
+        setLoading(false)
+        return
+      }
       login(result.user, remember)
       navigate(result.user.role === 'admin' ? '/admin' : '/', { replace: true })
       return
@@ -154,20 +167,30 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} noValidate className="auth-form">
 
-            {/* Role selector (signup only) */}
+            {/* Role tabs (signup only) */}
             {tab === 'signup' && (
               <div className="form-field">
-                <label htmlFor="role" className="field-label">Account type</label>
-                <select
-                  id="role"
-                  value={role}
-                  onChange={e => setRole(e.target.value)}
-                  className="field-select"
-                >
-                  <option value="student">Student</option>
-                  <option value="instructor">Course Instructor</option>
-                  <option value="employer">Employer</option>
-                </select>
+                <span className="field-label">Account type</span>
+                <div className="role-tabs" role="tablist" aria-label="Account type">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={role === 'student'}
+                    className={`role-tab ${role === 'student' ? 'role-tab-active' : ''}`}
+                    onClick={() => setRole('student')}
+                  >
+                    Student / Course instructor
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={role === 'employer'}
+                    className={`role-tab ${role === 'employer' ? 'role-tab-active' : ''}`}
+                    onClick={() => setRole('employer')}
+                  >
+                    Employer
+                  </button>
+                </div>
               </div>
             )}
 
@@ -182,7 +205,8 @@ export default function LoginPage() {
                   placeholder="Your company name"
                   value={companyName}
                   onChange={e => setCompanyName(e.target.value)}
-                  className="field-input"
+                  className={`field-input ${showCompanyNameError ? 'field-input-error' : ''}`}
+                  aria-invalid={showCompanyNameError}
                   required
                 />
               </div>
@@ -200,7 +224,8 @@ export default function LoginPage() {
                     placeholder="First name"
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
-                    className="field-input"
+                    className={`field-input ${showFirstNameError ? 'field-input-error' : ''}`}
+                    aria-invalid={showFirstNameError}
                     required
                   />
                 </div>
@@ -213,7 +238,8 @@ export default function LoginPage() {
                     placeholder="Last name"
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
-                    className="field-input"
+                    className={`field-input ${showLastNameError ? 'field-input-error' : ''}`}
+                    aria-invalid={showLastNameError}
                     required
                   />
                 </div>
@@ -239,8 +265,8 @@ export default function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onBlur={() => setEmailBlurred(true)}
-                className={`field-input ${showEmailError ? 'field-input-error' : ''}`}
-                aria-invalid={showEmailError}
+                className={`field-input ${showEmailError || showAuthError ? 'field-input-error' : ''}`}
+                aria-invalid={showEmailError || showAuthError}
                 aria-describedby={showEmailError ? 'email-err' : undefined}
                 required
               />
@@ -250,6 +276,9 @@ export default function LoginPage() {
                     ? 'Use your GUC email (e.g. name@student.guc.edu.eg)'
                     : 'Email is required.'}
                 </span>
+              )}
+              {showAuthError && (
+                <span className="field-error" role="alert">{authError}</span>
               )}
             </div>
 
@@ -264,7 +293,8 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="field-input"
+                  className={`field-input ${showPasswordError || showAuthError ? 'field-input-error' : ''}`}
+                  aria-invalid={showPasswordError || showAuthError}
                   required
                 />
                 <button
@@ -278,6 +308,9 @@ export default function LoginPage() {
               </div>
               {tab === 'signup' && (
                 <span className="field-hint">Minimum 6 characters</span>
+              )}
+              {showAuthError && (
+                <span className="field-error" role="alert">{authError}</span>
               )}
             </div>
 
@@ -293,7 +326,8 @@ export default function LoginPage() {
                     placeholder="Repeat your password"
                     value={confirm}
                     onChange={e => setConfirm(e.target.value)}
-                    className="field-input"
+                    className={`field-input ${showConfirmError ? 'field-input-error' : ''}`}
+                    aria-invalid={showConfirmError}
                     required
                   />
                   <button

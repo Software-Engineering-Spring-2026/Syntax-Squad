@@ -11,7 +11,8 @@ const NAV_ITEMS = [
   { to: '/admin/projects', label: 'Projects'                   },
   { to: '/admin/appeals',  label: 'Appeals'                    },
   { to: '/admin/link-requests', label: 'Link Requests'         },
-  { to: '/admin/flagged',  label: 'Flagged Projects'           },
+  { to: '/admin/flagged',      label: 'Flagged Projects'           },
+  { to: '/admin/internships',  label: 'Internship Stats'           },
 ]
 
 function SidebarNotifBadge({ count }) {

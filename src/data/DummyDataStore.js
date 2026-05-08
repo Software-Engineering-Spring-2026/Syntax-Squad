@@ -1747,6 +1747,71 @@ class DummyDataStore {
       .sort((a, b) => b.score - a.score || new Date(b.application.appliedAt) - new Date(a.application.appliedAt))
   }
 
+  getPlatformInternshipStats() {
+    const internships    = this.data.internships
+    const applications   = this.data.internshipApplications
+    const employers      = this.data.employers
+
+    const byStatus = {
+      pending:   applications.filter(a => a.status === 'pending').length,
+      nominated: applications.filter(a => a.status === 'nominated').length,
+      accepted:  applications.filter(a => a.status === 'accepted').length,
+      rejected:  applications.filter(a => a.status === 'rejected').length,
+      completed: applications.filter(a => a.status === 'completed').length,
+    }
+
+    const studentsPlaced   = new Set(applications.filter(a => a.status === 'accepted' || a.status === 'completed').map(a => a.studentId)).size
+    const studentsCompleted = new Set(applications.filter(a => a.status === 'completed').map(a => a.studentId)).size
+
+    const total = applications.length
+    const placementRate  = total ? Math.round(((byStatus.accepted + byStatus.completed) / total) * 100) : 0
+    const completionBase = byStatus.accepted + byStatus.completed
+    const completionRate = completionBase ? Math.round((byStatus.completed / completionBase) * 100) : 0
+
+    const byCompany = employers
+      .filter(e => e.role === 'employer')
+      .map(employer => {
+        const empInternships = internships.filter(i => i.employerId === employer.id)
+        const empIds         = new Set(empInternships.map(i => i.id))
+        const empApps        = applications.filter(a => empIds.has(a.internshipId))
+        return {
+          companyId:   employer.id,
+          companyName: employer.companyName,
+          postings:    empInternships.length,
+          applications: empApps.length,
+          accepted:    empApps.filter(a => a.status === 'accepted' || a.status === 'completed').length,
+          completed:   empApps.filter(a => a.status === 'completed').length,
+        }
+      })
+      .filter(c => c.postings > 0)
+      .sort((a, b) => b.completed - a.completed || b.accepted - a.accepted || b.applications - a.applications)
+
+    const skillCounts = {}
+    internships.forEach(i => {
+      ;(i.languages ?? []).forEach(lang => {
+        const key = lang.trim()
+        if (key) skillCounts[key] = (skillCounts[key] || 0) + 1
+      })
+    })
+    const topSkills = Object.entries(skillCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([name, count]) => ({ name, count }))
+
+    return {
+      totalInternships:  internships.length,
+      activeInternships: internships.filter(i => !i.isArchived).length,
+      totalApplications: total,
+      byStatus,
+      studentsPlaced,
+      studentsCompleted,
+      placementRate,
+      completionRate,
+      byCompany,
+      topSkills,
+    }
+  }
+
   getStats() {
     const students        = this.data.students.filter(u => u.role === 'student').length
     const instructors     = this.data.students.filter(u => u.role === 'instructor').length

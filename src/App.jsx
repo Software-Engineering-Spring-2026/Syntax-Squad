@@ -40,6 +40,7 @@ import AdminLinkRequestsPage from './pages/admin/AdminLinkRequestsPage'
 import AdminFlaggedPage  from './pages/admin/AdminFlaggedPage'
 import AdminProjectsPage from './pages/admin/AdminProjectsPage'
 import AdminAppealsPage  from './pages/admin/AdminAppealsPage'
+import AdminInternshipsPage from './pages/admin/AdminInternshipsPage'
 
 import './App.css'
 //  Placeholder for routes other members will build 
@@ -148,7 +149,8 @@ function AppRoutes() {
         <Route path="projects"  element={<AdminProjectsPage />} />
         <Route path="appeals"   element={<AdminAppealsPage />} />
         <Route path="link-requests" element={<AdminLinkRequestsPage />} />
-        <Route path="flagged"   element={<AdminFlaggedPage />} />
+        <Route path="flagged"       element={<AdminFlaggedPage />} />
+        <Route path="internships"   element={<AdminInternshipsPage />} />
       </Route>
 
       {/*  Placeholder routes for other team members  */}

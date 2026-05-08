@@ -34,7 +34,7 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
       <div className="modal-card">
         <div className="modal-header">
           <h2 className="modal-title">{employer.companyName}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
 
         <div className="modal-body">
@@ -76,7 +76,7 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
               <ul className="doc-list">
                 {docs.map(doc => (
                   <li key={doc.name} className="doc-item">
-                    <span className="doc-icon" aria-hidden="true">📄</span>
+                    <span className="doc-icon" aria-hidden="true"></span>
                     <div className="doc-info">
                       <span className="doc-name">{doc.name}</span>
                       <span className="doc-date muted-text">
@@ -116,13 +116,13 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
               className="btn btn-primary"
               onClick={() => onDecision(employer.id, 'accepted')}
             >
-              ✓ Accept company
+               Accept company
             </button>
             <button
               className="btn btn-danger"
               onClick={() => onDecision(employer.id, 'rejected')}
             >
-              ✗ Reject company
+               Reject company
             </button>
             <button className="btn btn-outline" onClick={onClose}>Cancel</button>
           </div>
@@ -175,7 +175,7 @@ export default function AdminEmployersPage() {
 
       {counts.pending > 0 && (
         <div className="alert alert-warning" style={{ marginBottom: 20 }}>
-          <span aria-hidden="true">⏳</span>&nbsp;
+          <span aria-hidden="true"></span>&nbsp;
           <strong>{counts.pending} company{counts.pending !== 1 ? 'ies' : ''}</strong> awaiting approval.
         </div>
       )}

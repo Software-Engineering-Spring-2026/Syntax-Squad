@@ -21,7 +21,7 @@ export default function InstructorProfileViewPage() {
         <div className="empty-state" style={{ marginTop: 60 }}>
           <p style={{ fontSize: 18 }}>Instructor not found.</p>
           <Link to="/instructors" className="btn btn-outline" style={{ marginTop: 12 }}>
-            ← Back to instructors
+             Back to instructors
           </Link>
         </div>
       </div>
@@ -35,7 +35,7 @@ export default function InstructorProfileViewPage() {
   return (
     <div className="page-container">
       <Link to="/instructors" className="back-link">
-        ← Back to instructors
+         Back to instructors
       </Link>
 
       <div className="profile-view-layout">

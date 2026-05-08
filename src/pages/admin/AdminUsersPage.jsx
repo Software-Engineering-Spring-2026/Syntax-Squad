@@ -39,7 +39,7 @@ function CreateAdminModal({ onClose, onCreate }) {
       <div className="modal-card" style={{ maxWidth: 420 }}>
         <div className="modal-header">
           <h2 className="modal-title">Create admin account</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <form onSubmit={handleSubmit} noValidate className="modal-body">
           <div className="form-field">
@@ -64,7 +64,7 @@ function CreateAdminModal({ onClose, onCreate }) {
           <div className="modal-footer" style={{ paddingTop: 8 }}>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? <span className="btn-spinner" /> : null}
-              {saving ? 'Creating…' : 'Create admin'}
+              {saving ? 'Creating' : 'Create admin'}
             </button>
             <button type="button" className="btn btn-outline" onClick={onClose}>Cancel</button>
           </div>
@@ -148,16 +148,16 @@ export default function AdminUsersPage() {
       {/* Search */}
       <div className="search-bar-wrap" style={{ marginBottom: 20 }}>
         <div className="search-bar">
-          <span className="search-icon" aria-hidden="true">🔍</span>
+          <span className="search-icon" aria-hidden="true"></span>
           <input
             type="text"
-            placeholder="Search by name or email…"
+            placeholder="Search by name or email"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="search-input"
           />
           {search && (
-            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear">×</button>
+            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear"></button>
           )}
         </div>
       </div>

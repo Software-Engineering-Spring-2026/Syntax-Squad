@@ -49,7 +49,7 @@ function AvatarUpload({ user, onUpload }) {
         onChange={handleFile}
         aria-label="Upload profile picture"
       />
-      <p className="field-hint">JPG, PNG or GIF · max 2 MB</p>
+      <p className="field-hint">JPG, PNG or GIF  max 2 MB</p>
     </div>
   )
 }
@@ -78,7 +78,7 @@ function SkillsInput({ skills, onChange }) {
               onClick={() => remove(s)}
               aria-label={`Remove ${s}`}
             >
-              ×
+              
             </button>
           </span>
         ))}
@@ -259,7 +259,7 @@ export default function StudentProfilePage() {
             </span>
           </div>
 
-          {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true">✓</span> Profile saved successfully.</div>}
+          {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true"></span> Profile saved successfully.</div>}
 
           <div className="form-actions">
             <button
@@ -268,7 +268,7 @@ export default function StudentProfilePage() {
               disabled={saving || !dirty}
             >
               {saving ? <span className="btn-spinner" /> : null}
-              {saving ? 'Saving…' : 'Save changes'}
+              {saving ? 'Saving' : 'Save changes'}
             </button>
             {dirty && (
               <button

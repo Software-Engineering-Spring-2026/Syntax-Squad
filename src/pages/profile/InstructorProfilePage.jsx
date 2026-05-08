@@ -25,7 +25,7 @@ function AvatarUpload({ user, onUpload }) {
         {user.profilePicture ? 'Change photo' : 'Upload photo'}
       </button>
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
-      <p className="field-hint">JPG, PNG or GIF · max 2 MB</p>
+      <p className="field-hint">JPG, PNG or GIF  max 2 MB</p>
     </div>
   )
 }
@@ -45,7 +45,7 @@ function TagsInput({ tags, onChange, placeholder }) {
         {tags.map(t => (
           <span key={t} className="skill-tag">
             {t}
-            <button type="button" className="skill-remove" onClick={() => remove(t)} aria-label={`Remove ${t}`}>×</button>
+            <button type="button" className="skill-remove" onClick={() => remove(t)} aria-label={`Remove ${t}`}></button>
           </span>
         ))}
         {tags.length === 0 && <span className="muted-text" style={{ fontSize: 13 }}>None added yet</span>}
@@ -129,7 +129,7 @@ function CourseLinkSection({ user }) {
             value={selected}
             onChange={e => setSelected(e.target.value)}
           >
-            <option value="">— Select a course —</option>
+            <option value=""> Select a course </option>
             {allCourses
               .filter(c => !linked.includes(c.id))
               .map(c => (
@@ -145,8 +145,8 @@ function CourseLinkSection({ user }) {
             Send request
           </button>
         </div>
-        {reqError   && <div className="alert alert-error"   style={{ marginTop: 8 }}><span aria-hidden="true">⚠</span> {reqError}</div>}
-        {reqSuccess && <div className="alert alert-success" style={{ marginTop: 8 }}><span aria-hidden="true">✓</span> {reqSuccess}</div>}
+        {reqError   && <div className="alert alert-error"   style={{ marginTop: 8 }}><span aria-hidden="true"></span> {reqError}</div>}
+        {reqSuccess && <div className="alert alert-success" style={{ marginTop: 8 }}><span aria-hidden="true"></span> {reqSuccess}</div>}
         <p className="field-hint">Requests are reviewed by the administrator before taking effect.</p>
       </div>
     </div>
@@ -224,7 +224,7 @@ export default function InstructorProfilePage() {
               <textarea
                 id="ip-bio"
                 className="field-textarea"
-                placeholder="A brief description of your background and expertise…"
+                placeholder="A brief description of your background and expertise"
                 rows={4}
                 value={form.bio}
                 onChange={e => set('bio', e.target.value)}
@@ -254,13 +254,13 @@ export default function InstructorProfilePage() {
               />
             </div>
 
-            {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
-            {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true">✓</span> Profile saved successfully.</div>}
+            {error && <div className="alert alert-error" role="alert"><span aria-hidden="true"></span> {error}</div>}
+            {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true"></span> Profile saved successfully.</div>}
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={saving || !dirty}>
                 {saving ? <span className="btn-spinner" /> : null}
-                {saving ? 'Saving…' : 'Save changes'}
+                {saving ? 'Saving' : 'Save changes'}
               </button>
               {dirty && (
                 <button type="button" className="btn btn-outline" onClick={() => { setForm({ firstName: currentUser.firstName ?? '', lastName: currentUser.lastName ?? '', bio: currentUser.bio ?? '', researchInterests: currentUser.researchInterests ?? [], education: currentUser.education ?? '', profilePicture: currentUser.profilePicture ?? null }); setDirty(false); setError('') }}>

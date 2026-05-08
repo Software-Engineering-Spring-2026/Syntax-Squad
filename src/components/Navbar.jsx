@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import store from '../data/DummyDataStore'
 
-// ── Nav links per role ────────────────────────────────────────────────────────
+//  Nav links per role 
 const NAV_LINKS = {
   student: [
     { to: '/',                  label: 'Home'       },
@@ -151,6 +151,10 @@ export default function Navbar() {
   return (
     <nav className="navbar" aria-label="Main navigation">
       <div className="navbar-inner">
+        <Link to="/" className="navbar-brand" onClick={() => setMenuOpen(false)}>
+          <span className="brand-mark" aria-hidden="true">PH</span>
+          <span className="brand-name">ProjectHub</span>
+        </Link>
 
         {/* Desktop links */}
         <div className={`navbar-links ${menuOpen ? 'nav-open' : ''}`} role="menubar">

@@ -4,7 +4,7 @@ const DEMO_OTP = '246810'
 const uid = (prefix) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 
-// ─── Seed data ────────────────────────────────────────────────────────────────
+//  Seed data 
 const defaultData = {
   students: [
     {
@@ -214,6 +214,103 @@ const defaultData = {
     { userId: 'employer-1', projects: ['project-1'], portfolios: ['student-1'] },
   ],
 
+  projectInvites: [],
+
+  internships: [
+    {
+      id: 'internship-1',
+      employerId: 'employer-1',
+      title: 'Frontend Engineering Intern',
+      description: 'Build React interfaces for internal enterprise tools with a senior mentor.',
+      requirements: 'React, JavaScript, CSS, Git',
+      languages: ['JavaScript', 'React'],
+      location: 'New Cairo',
+      workMode: 'Hybrid',
+      duration: '3 months',
+      paid: true,
+      deadline: '2026-06-15',
+      hiringStatus: 'hiring',
+      createdAt: new Date(Date.now() - 432000000).toISOString(),
+      isArchived: false,
+    },
+    {
+      id: 'internship-2',
+      employerId: 'employer-1',
+      title: 'Backend API Intern',
+      description: 'Design and test REST APIs for a logistics dashboard.',
+      requirements: 'Node.js, SQL, API testing',
+      languages: ['Node.js', 'SQL'],
+      location: 'Cairo',
+      workMode: 'On-site',
+      duration: '2 months',
+      paid: true,
+      deadline: '2026-06-30',
+      hiringStatus: 'hiring',
+      createdAt: new Date(Date.now() - 259200000).toISOString(),
+      isArchived: false,
+    },
+  ],
+
+  internshipApplications: [
+    {
+      id: 'app-1',
+      internshipId: 'internship-1',
+      studentId: 'student-2',
+      coverLetter: 'I have built React dashboards for course projects and would like to contribute to production interfaces.',
+      status: 'pending',
+      appliedAt: new Date(Date.now() - 86400000).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000).toISOString(),
+    },
+  ],
+
+  projectTasks: [
+    {
+      id: 'task-1',
+      projectId: 'project-1',
+      title: 'Revise similarity explanation',
+      description: 'Clarify which libraries were referenced and which parts are original.',
+      status: 'in-progress',
+      deadline: '2026-05-20',
+      importance: 1,
+      assignedTo: 'student-2',
+      createdAt: new Date(Date.now() - 172800000).toISOString(),
+    },
+    {
+      id: 'task-2',
+      projectId: 'project-2',
+      title: 'Prepare final demo video',
+      description: 'Record a short walkthrough of the navigation flow.',
+      status: 'todo',
+      deadline: '2026-05-28',
+      importance: 2,
+      assignedTo: 'student-2',
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+    },
+  ],
+
+  projectComments: [
+    {
+      id: 'comment-1',
+      projectId: 'project-1',
+      authorId: 'instructor-1',
+      body: 'Please add more detail about the model evaluation metrics.',
+      createdAt: new Date(Date.now() - 3600000).toISOString(),
+    },
+  ],
+
+  projectFeedback: [
+    {
+      id: 'feedback-1',
+      projectId: 'project-1',
+      instructorId: 'instructor-1',
+      body: 'Good project direction. The report needs clearer evidence for originality and testing.',
+      rating: 4,
+      createdAt: new Date(Date.now() - 7200000).toISOString(),
+    },
+  ],
+
+  taskComments: [],
+
   messages: [
     {
       id: 'msg-1',
@@ -276,6 +373,26 @@ const defaultData = {
       flaggedBy: null,
       appeal: null,
       visibility: 'public',
+      thesisDrafts: [
+        {
+          id: 'draft-1',
+          title: 'Initial Thesis Draft',
+          fileName: 'campus-navigation-draft-1.pdf',
+          notes: 'First complete thesis structure with introduction and proposed architecture.',
+          isFinal: false,
+          visibility: 'private',
+          uploadedAt: new Date(Date.now() - 432000000).toISOString(),
+        },
+        {
+          id: 'draft-2',
+          title: 'Final Thesis Draft',
+          fileName: 'campus-navigation-final.pdf',
+          notes: 'Final draft prepared for public portfolio review.',
+          isFinal: true,
+          visibility: 'public',
+          uploadedAt: new Date(Date.now() - 172800000).toISOString(),
+        },
+      ],
       createdAt: new Date(Date.now() - 1209600000).toISOString(),
     },
     {
@@ -302,7 +419,7 @@ const defaultData = {
   otps: [],
 }
 
-// ─── Store class ──────────────────────────────────────────────────────────────
+//  Store class 
 class DummyDataStore {
   constructor() {
     this.data = this._load()
@@ -324,6 +441,13 @@ class DummyDataStore {
         notifications:Array.isArray(parsed.notifications)? parsed.notifications: defaultData.notifications,
         messages:     Array.isArray(parsed.messages)     ? parsed.messages     : defaultData.messages,
         favorites:    Array.isArray(parsed.favorites)    ? parsed.favorites    : defaultData.favorites,
+        projectInvites:Array.isArray(parsed.projectInvites)? parsed.projectInvites: defaultData.projectInvites,
+        internships:  Array.isArray(parsed.internships)  ? parsed.internships  : defaultData.internships,
+        internshipApplications:Array.isArray(parsed.internshipApplications)? parsed.internshipApplications: defaultData.internshipApplications,
+        projectTasks: Array.isArray(parsed.projectTasks) ? parsed.projectTasks : defaultData.projectTasks,
+        projectComments:Array.isArray(parsed.projectComments)? parsed.projectComments: defaultData.projectComments,
+        projectFeedback:Array.isArray(parsed.projectFeedback)? parsed.projectFeedback: defaultData.projectFeedback,
+        taskComments:  Array.isArray(parsed.taskComments)  ? parsed.taskComments  : defaultData.taskComments,
         projects:     Array.isArray(parsed.projects)     ? parsed.projects     : defaultData.projects,
         otps:         Array.isArray(parsed.otps)         ? parsed.otps         : [],
       })
@@ -362,12 +486,62 @@ class DummyDataStore {
       notificationsEnabled: admin.notificationsEnabled !== false,
     }))
 
-    const normalized = { ...clone, admins }
+    const projects = (Array.isArray(clone.projects) ? clone.projects : []).map(project => {
+      const thesisDrafts = Array.isArray(project.thesisDrafts) ? project.thesisDrafts : []
+      const hasFinal = thesisDrafts.some(draft => draft.isFinal)
+      return {
+        ...project,
+        collaborators: Array.isArray(project.collaborators) ? project.collaborators : [],
+        thesisDrafts: thesisDrafts.map(draft => ({
+          ...draft,
+          visibility: draft.isFinal && hasFinal ? 'public' : 'private',
+        })),
+      }
+    })
+
+    const projectTasks = (Array.isArray(clone.projectTasks) ? clone.projectTasks : []).map(task => ({
+      ...task,
+      status: task.status === 'todo'
+        ? 'pending'
+        : task.status === 'in-progress'
+        ? 'postponed'
+        : task.status === 'done'
+        ? 'completed'
+        : task.status,
+      assignedTo: task.assignedTo ?? '',
+    }))
+
+    const internships = (Array.isArray(clone.internships) ? clone.internships : []).map(internship => ({
+      ...internship,
+      languages: Array.isArray(internship.languages) ? internship.languages : [],
+      hiringStatus: internship.hiringStatus === 'filled' ? 'filled' : 'hiring',
+    }))
+
+    const normalized = {
+      ...clone,
+      admins,
+      students: Array.isArray(clone.students) ? clone.students : [],
+      employers: Array.isArray(clone.employers) ? clone.employers : [],
+      courses: Array.isArray(clone.courses) ? clone.courses : [],
+      linkRequests: Array.isArray(clone.linkRequests) ? clone.linkRequests : [],
+      notifications: Array.isArray(clone.notifications) ? clone.notifications : [],
+      messages: Array.isArray(clone.messages) ? clone.messages : [],
+      favorites: Array.isArray(clone.favorites) ? clone.favorites : [],
+      projectInvites: Array.isArray(clone.projectInvites) ? clone.projectInvites : [],
+      internships,
+      internshipApplications: Array.isArray(clone.internshipApplications) ? clone.internshipApplications : [],
+      projectTasks,
+      projectComments: Array.isArray(clone.projectComments) ? clone.projectComments : [],
+      projectFeedback: Array.isArray(clone.projectFeedback) ? clone.projectFeedback : [],
+      taskComments: Array.isArray(clone.taskComments) ? clone.taskComments : [],
+      projects,
+      otps: Array.isArray(clone.otps) ? clone.otps : [],
+    }
     this._persist(normalized)
     return normalized
   }
 
-  // ── Auth ────────────────────────────────────────────────────────────────────
+  //  Auth 
 
   _emailExists(email) {
     const e = email.trim().toLowerCase()
@@ -415,7 +589,7 @@ class DummyDataStore {
 
     const user = {
       id: uid('student'),
-      role: role || 'student',
+      role: role === 'instructor' ? 'instructor' : 'student',
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       email: e,
@@ -427,7 +601,7 @@ class DummyDataStore {
       bio: '',
       researchInterests: [],
       education: '',
-      linkedCourses: [],
+      linkedCourses: role === 'instructor' ? ['course-bachelor'] : [],
       isActive: true,
       notificationsEnabled: true,
     }
@@ -435,7 +609,7 @@ class DummyDataStore {
     return { ok: true, user }
   }
 
-  registerEmployer({ companyName, companyEmail, password }) {
+  registerEmployer({ companyName, companyEmail, password, address = '', location = '', documents = [] }) {
     const e = companyEmail.trim().toLowerCase()
     if (this._emailExists(e)) return { ok: false, error: 'An account with this email already exists.' }
 
@@ -446,11 +620,11 @@ class DummyDataStore {
       companyEmail: e,
       password,
       bio: '',
-      address: '',
+      address: address.trim(),
       contactInfo: '',
-      location: '',
+      location: location.trim(),
       profilePicture: null,
-      documents: [],
+      documents: Array.isArray(documents) ? documents : [],
       status: 'pending',
       isActive: true,
       notificationsEnabled: true,
@@ -460,7 +634,7 @@ class DummyDataStore {
     return { ok: true, user }
   }
 
-  // ── OTP ─────────────────────────────────────────────────────────────────────
+  //  OTP 
 
   generateOtp(email) {
     const e = email.trim().toLowerCase()
@@ -504,7 +678,7 @@ class DummyDataStore {
     return { ok: true }
   }
 
-  // ── Get user ─────────────────────────────────────────────────────────────────
+  //  Get user 
 
   getUserById(id, role) {
     if (!id) return null
@@ -513,7 +687,7 @@ class DummyDataStore {
     return this.data.students.find(u => u.id === id) ?? null
   }
 
-  // ── Update profiles ──────────────────────────────────────────────────────────
+  //  Update profiles 
 
   updateStudent(id, updates) {
     const students = this.data.students.map(u => u.id === id ? { ...u, ...updates } : u)
@@ -545,7 +719,7 @@ class DummyDataStore {
     return { ok: true }
   }
 
-  // ── Courses ──────────────────────────────────────────────────────────────────
+  //  Courses 
 
   getCourses() { return [...this.data.courses] }
 
@@ -577,7 +751,7 @@ class DummyDataStore {
     return { ok: true }
   }
 
-  // ── Link requests ────────────────────────────────────────────────────────────
+  //  Link requests 
 
   getLinkRequests() { return [...this.data.linkRequests] }
 
@@ -642,7 +816,7 @@ class DummyDataStore {
     return { ok: true }
   }
 
-  // ── Admin: Users ─────────────────────────────────────────────────────────────
+  //  Admin: Users 
 
   getAllUsers() {
     const students  = this.data.students.map(u => ({
@@ -695,7 +869,7 @@ class DummyDataStore {
     return { ok: true, admin }
   }
 
-  // ── Admin: Employers ─────────────────────────────────────────────────────────
+  //  Admin: Employers 
 
   getEmployerApplications() {
     return this.data.employers.filter(e => e.status === 'pending')
@@ -717,7 +891,7 @@ class DummyDataStore {
     return { ok: true }
   }
 
-  // ── Admin: Projects ──────────────────────────────────────────────────────────
+  //  Admin: Projects 
 
   getProjects() { return [...this.data.projects] }
 
@@ -729,7 +903,7 @@ class DummyDataStore {
     return this.data.projects.find(p => p.id === id) ?? null
   }
 
-  createProject({ ownerId, title, courseId, githubLink, reportSummary, languages, collaborators, demoVideoUrl }) {
+  createProject({ ownerId, title, courseId, githubLink, reportSummary, languages, collaborators, demoVideoUrl, visibility }) {
     const trimmedTitle = title?.trim()
     if (!trimmedTitle) return { ok: false, error: 'Project title is required.' }
     if (!courseId) return { ok: false, error: 'Course is required.' }
@@ -749,7 +923,8 @@ class DummyDataStore {
       flagReason: null,
       flaggedBy: null,
       appeal: null,
-      visibility: 'public',
+      visibility: visibility === 'private' ? 'private' : 'public',
+      thesisDrafts: [],
       createdAt: new Date().toISOString(),
     }
 
@@ -867,13 +1042,75 @@ class DummyDataStore {
     return { ok: true }
   }
 
-  // ── Project invitations ───────────────────────────────────────────────────
+  //  Project invitations 
 
   getProjectInvitesForUser(userId) {
     return this.data.projectInvites.filter(i => i.inviteeId === userId)
   }
 
+  getProjectInvites(projectId) {
+    return this.data.projectInvites
+      .filter(i => i.projectId === projectId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }
+
+  searchProjectInviteCandidates(projectId, query) {
+    const project = this.getProjectById(projectId)
+    if (!project) return []
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+
+    const linkedInstructorIds = new Set(
+      this.data.students
+        .filter(user => user.role === 'instructor' && (user.linkedCourses ?? []).includes(project.courseId))
+        .map(user => user.id)
+    )
+
+    const pendingInvitees = new Set(
+      this.data.projectInvites
+        .filter(invite => invite.projectId === projectId && invite.status === 'pending')
+        .map(invite => invite.inviteeId)
+    )
+
+    return this.getAllUsers()
+      .filter(user => {
+        if (!['student', 'instructor'].includes(user.role)) return false
+        if (user.id === project.ownerId) return false
+        if ((project.collaborators ?? []).includes(user.id)) return false
+        if (pendingInvitees.has(user.id)) return false
+        if (user.role === 'instructor' && !linkedInstructorIds.has(user.id)) return false
+        if (project.courseId === 'course-bachelor' && user.role !== 'instructor') return false
+
+        const haystack = [
+          user.firstName,
+          user.lastName,
+          user.email,
+          user.displayName,
+          user.primaryEmail,
+        ].filter(Boolean).join(' ').toLowerCase()
+        return haystack.includes(q)
+      })
+      .slice(0, 8)
+  }
+
   createProjectInvite(projectId, inviterId, inviteeId) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== inviterId) return { ok: false, error: 'Only the project owner can invite collaborators.' }
+    if (inviteeId === inviterId) return { ok: false, error: 'You cannot invite yourself.' }
+    const invitee = this.getAllUsers().find(u => u.id === inviteeId)
+    if (!invitee) return { ok: false, error: `User ${inviteeId} was not found.` }
+    if (!['student', 'instructor'].includes(invitee.role)) return { ok: false, error: 'Only students and course instructors can be invited.' }
+    if (project.courseId === 'course-bachelor' && invitee.role !== 'instructor') {
+      return { ok: false, error: 'Bachelor projects do not accept student collaborators.' }
+    }
+    if (invitee.role === 'instructor' && !(invitee.linkedCourses ?? []).includes(project.courseId)) {
+      return { ok: false, error: 'Only instructors linked to this course can be invited.' }
+    }
+    if ((project.collaborators ?? []).includes(inviteeId)) {
+      return { ok: false, error: 'User is already a collaborator.' }
+    }
+
     const exists = this.data.projectInvites.some(i =>
       i.projectId === projectId && i.inviteeId === inviteeId && i.status === 'pending'
     )
@@ -890,12 +1127,9 @@ class DummyDataStore {
 
     this._persist({ ...this.data, projectInvites: [...this.data.projectInvites, invite] })
 
-    const project = this.getProjectById(projectId)
-    if (project) {
-      const inviterName = this._getUserDisplayName(inviterId)
-      const msg = `${inviterName} invited you to collaborate on "${project.title}".`
-      this.addNotification(inviteeId, msg, 'project_invite', { inviteId: invite.id, projectId })
-    }
+    const inviterName = this._getUserDisplayName(inviterId)
+    const msg = `${inviterName} invited you to collaborate on "${project.title}".`
+    this.addNotification(inviteeId, msg, 'project_invite', { inviteId: invite.id, projectId })
 
     return { ok: true, invite }
   }
@@ -904,6 +1138,26 @@ class DummyDataStore {
     const unique = [...new Set(inviteeIds)].filter(id => id && id !== inviterId)
     const results = unique.map(id => this.createProjectInvite(projectId, inviterId, id))
     return { ok: true, results }
+  }
+
+  cancelProjectInvite(inviteId, ownerId) {
+    const invite = this.data.projectInvites.find(i => i.id === inviteId)
+    if (!invite) return { ok: false, error: 'Invite not found.' }
+    const project = this.getProjectById(invite.projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== ownerId) return { ok: false, error: 'Only the project owner can cancel invitations.' }
+    if (invite.status !== 'pending') return { ok: false, error: 'Only pending invitations can be cancelled.' }
+
+    const projectInvites = this.data.projectInvites.map(i =>
+      i.id === inviteId ? { ...i, status: 'cancelled', resolvedAt: new Date().toISOString() } : i
+    )
+    const notifications = this.data.notifications.map(n =>
+      n.type === 'project_invite' && n.inviteId === inviteId
+        ? { ...n, isRead: true }
+        : n
+    )
+    this._persist({ ...this.data, projectInvites, notifications })
+    return { ok: true }
   }
 
   resolveProjectInvite(inviteId, accepted) {
@@ -923,7 +1177,7 @@ class DummyDataStore {
     }
 
     const projectInvites = this.data.projectInvites.map(i =>
-      i.id === inviteId ? { ...i, status: accepted ? 'accepted' : 'rejected' } : i
+      i.id === inviteId ? { ...i, status: accepted ? 'accepted' : 'rejected', resolvedAt: new Date().toISOString() } : i
     )
 
     const notifications = this.data.notifications.map(n =>
@@ -937,7 +1191,561 @@ class DummyDataStore {
     return { ok: true }
   }
 
-  // ── Admin: Stats ─────────────────────────────────────────────────────────────
+  removeProjectCollaborator(projectId, ownerId, collaboratorId) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== ownerId) return { ok: false, error: 'Only the project owner can remove collaborators.' }
+    if (!(project.collaborators ?? []).includes(collaboratorId)) return { ok: false, error: 'Collaborator is not on this project.' }
+
+    const projects = this.data.projects.map(p =>
+      p.id === projectId
+        ? { ...p, collaborators: (p.collaborators ?? []).filter(id => id !== collaboratorId) }
+        : p
+    )
+    const projectTasks = this.data.projectTasks.map(task =>
+      task.projectId === projectId && task.assignedTo === collaboratorId
+        ? { ...task, assignedTo: '' }
+        : task
+    )
+    this._persist({ ...this.data, projects, projectTasks })
+    this.addNotification(collaboratorId, `You were removed from "${project.title}".`, 'project_collaborator_removed', { projectId })
+    return { ok: true }
+  }
+
+  addThesisDraft(projectId, ownerId, payload) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== ownerId) return { ok: false, error: 'Only the project owner can upload thesis drafts.' }
+    if (project.courseId !== 'course-bachelor') return { ok: false, error: 'Thesis drafts are only required for Bachelor Project.' }
+
+    const title = payload.title?.trim()
+    const fileName = payload.fileName?.trim()
+    if (!title) return { ok: false, error: 'Draft title is required.' }
+    if (!fileName) return { ok: false, error: 'Draft file name is required.' }
+
+    const draft = {
+      id: uid('draft'),
+      title,
+      fileName,
+      notes: payload.notes?.trim() || '',
+      isFinal: false,
+      visibility: 'private',
+      uploadedAt: new Date().toISOString(),
+    }
+    const projects = this.data.projects.map(p =>
+      p.id === projectId ? { ...p, thesisDrafts: [...(p.thesisDrafts ?? []), draft] } : p
+    )
+    this._persist({ ...this.data, projects })
+    return { ok: true, draft }
+  }
+
+  setFinalThesisDraft(projectId, ownerId, draftId) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== ownerId) return { ok: false, error: 'Only the project owner can select the final draft.' }
+    if (project.courseId !== 'course-bachelor') return { ok: false, error: 'Only Bachelor Project drafts can be finalized.' }
+    if (!(project.thesisDrafts ?? []).some(draft => draft.id === draftId)) return { ok: false, error: 'Draft not found.' }
+
+    const projects = this.data.projects.map(p =>
+      p.id === projectId
+        ? {
+            ...p,
+            thesisDrafts: (p.thesisDrafts ?? []).map(draft => ({
+              ...draft,
+              isFinal: draft.id === draftId,
+              visibility: draft.id === draftId ? 'public' : 'private',
+            })),
+          }
+        : p
+    )
+    this._persist({ ...this.data, projects })
+    return { ok: true }
+  }
+
+  deleteThesisDraft(projectId, ownerId, draftId) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== ownerId) return { ok: false, error: 'Only the project owner can remove thesis drafts.' }
+    const projects = this.data.projects.map(p =>
+      p.id === projectId ? { ...p, thesisDrafts: (p.thesisDrafts ?? []).filter(draft => draft.id !== draftId) } : p
+    )
+    this._persist({ ...this.data, projects })
+    return { ok: true }
+  }
+
+  //  Admin: Stats 
+
+  // -- Project tasks, comments, feedback ------------------------------------
+
+  getProjectTasks(projectId) {
+    return this.data.projectTasks
+      .filter(t => t.projectId === projectId)
+      .sort((a, b) => (a.importance ?? 99) - (b.importance ?? 99) || new Date(a.createdAt) - new Date(b.createdAt))
+  }
+
+  createProjectTask(projectId, userId, payload) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== userId) return { ok: false, error: 'Only the project owner can create tasks.' }
+    const title = payload.title?.trim()
+    if (!title) return { ok: false, error: 'Task title is required.' }
+    const assignedTo = payload.assignedTo || ''
+    const assignees = new Set([project.ownerId, ...(project.collaborators ?? [])])
+    if (assignedTo && !assignees.has(assignedTo)) return { ok: false, error: 'Task assignee must be a project member.' }
+    const task = {
+      id: uid('task'),
+      projectId,
+      title,
+      description: payload.description?.trim() || '',
+      status: ['pending', 'postponed', 'completed'].includes(payload.status) ? payload.status : 'pending',
+      deadline: payload.deadline || '',
+      importance: Number(payload.importance) || this.getProjectTasks(projectId).length + 1,
+      assignedTo,
+      createdAt: new Date().toISOString(),
+    }
+    this._persist({ ...this.data, projectTasks: [...this.data.projectTasks, task] })
+    return { ok: true, task }
+  }
+
+  updateProjectTask(taskId, userId, updates) {
+    const task = this.data.projectTasks.find(t => t.id === taskId)
+    if (!task) return { ok: false, error: 'Task not found.' }
+    const project = this.getProjectById(task.projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    const isOwner = project.ownerId === userId
+    const isAssignedCollaborator = task.assignedTo === userId && (project.collaborators ?? []).includes(userId)
+    if (!isOwner && !isAssignedCollaborator) {
+      return { ok: false, error: 'Only the owner or assigned collaborator can update this task.' }
+    }
+    if (!isOwner) {
+      const keys = Object.keys(updates)
+      if (keys.length !== 1 || keys[0] !== 'status') {
+        return { ok: false, error: 'Collaborators can only update their assigned task status.' }
+      }
+    }
+    const title = updates.title?.trim()
+    if (updates.title !== undefined && !title) return { ok: false, error: 'Task title is required.' }
+    const assignedTo = updates.assignedTo !== undefined ? updates.assignedTo : task.assignedTo
+    const assignees = new Set([project.ownerId, ...(project.collaborators ?? [])])
+    if (assignedTo && !assignees.has(assignedTo)) return { ok: false, error: 'Task assignee must be a project member.' }
+    const projectTasks = this.data.projectTasks.map(t =>
+      t.id === taskId
+        ? {
+            ...t,
+            ...updates,
+            title: updates.title !== undefined ? title : t.title,
+            description: updates.description !== undefined ? updates.description.trim() : t.description,
+            status: updates.status !== undefined && ['pending', 'postponed', 'completed'].includes(updates.status) ? updates.status : t.status,
+            importance: updates.importance !== undefined ? Number(updates.importance) || t.importance : t.importance,
+            assignedTo,
+          }
+        : t
+    )
+    this._persist({ ...this.data, projectTasks })
+    return { ok: true }
+  }
+
+  deleteProjectTask(taskId, userId) {
+    const task = this.data.projectTasks.find(t => t.id === taskId)
+    if (!task) return { ok: false, error: 'Task not found.' }
+    const project = this.getProjectById(task.projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== userId) return { ok: false, error: 'Only the project owner can delete tasks.' }
+    this._persist({ ...this.data, projectTasks: this.data.projectTasks.filter(t => t.id !== taskId) })
+    return { ok: true }
+  }
+
+  getProjectComments(projectId) {
+    return this.data.projectComments
+      .filter(c => c.projectId === projectId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }
+
+  addProjectComment(projectId, authorId, body) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    const text = body?.trim()
+    if (!text) return { ok: false, error: 'Comment is required.' }
+    const comment = {
+      id: uid('comment'),
+      projectId,
+      authorId,
+      body: text,
+      createdAt: new Date().toISOString(),
+    }
+    this._persist({ ...this.data, projectComments: [comment, ...this.data.projectComments] })
+    return { ok: true, comment }
+  }
+
+  getProjectFeedback(projectId) {
+    return this.data.projectFeedback
+      .filter(f => f.projectId === projectId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }
+
+  addProjectFeedback(projectId, instructorId, body, rating) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    const instructor = this.getUserById(instructorId, 'instructor')
+    if (!instructor) return { ok: false, error: 'Only instructors can add feedback.' }
+    const text = body?.trim()
+    if (!text) return { ok: false, error: 'Feedback is required.' }
+    const score = Number(rating)
+    if (!Number.isInteger(score) || score < 1 || score > 5) {
+      return { ok: false, error: 'Rating must be from 1 to 5.' }
+    }
+    const feedback = {
+      id: uid('feedback'),
+      projectId,
+      instructorId,
+      body: text,
+      rating: score,
+      createdAt: new Date().toISOString(),
+    }
+    this._persist({ ...this.data, projectFeedback: [feedback, ...this.data.projectFeedback] })
+
+    const recipients = Array.from(new Set([project.ownerId, ...(project.collaborators ?? [])]))
+    recipients.forEach((userId) => {
+      this.addNotification(
+        userId,
+        `${this._getUserDisplayName(instructorId)} left feedback on "${project.title}".`,
+        'project_feedback',
+        { projectId, feedbackId: feedback.id }
+      )
+    })
+    return { ok: true, feedback }
+  }
+
+  getProjectRating(projectId) {
+    const feedback = this.getProjectFeedback(projectId).filter(f => Number(f.rating) > 0)
+    if (feedback.length === 0) return { average: 0, count: 0 }
+    const total = feedback.reduce((sum, item) => sum + Number(item.rating), 0)
+    return { average: Math.round((total / feedback.length) * 10) / 10, count: feedback.length }
+  }
+
+  getTaskComments(projectId) {
+    const taskIds = new Set(this.getProjectTasks(projectId).map(task => task.id))
+    return this.data.taskComments
+      .filter(comment => taskIds.has(comment.taskId))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }
+
+  addTaskComment(taskId, instructorId, body) {
+    const task = this.data.projectTasks.find(t => t.id === taskId)
+    if (!task) return { ok: false, error: 'Task not found.' }
+    const project = this.getProjectById(task.projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    const instructor = this.getUserById(instructorId, 'instructor')
+    if (!instructor) return { ok: false, error: 'Only instructors can add task feedback.' }
+    const text = body?.trim()
+    if (!text) return { ok: false, error: 'Task feedback is required.' }
+    const comment = {
+      id: uid('task-comment'),
+      taskId,
+      projectId: task.projectId,
+      instructorId,
+      body: text,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    this._persist({ ...this.data, taskComments: [comment, ...this.data.taskComments] })
+    const recipients = Array.from(new Set([project.ownerId, ...(project.collaborators ?? [])]))
+    recipients.forEach(userId => {
+      this.addNotification(
+        userId,
+        `${this._getUserDisplayName(instructorId)} left feedback on task "${task.title}".`,
+        'task_feedback',
+        { projectId: project.id, taskId, commentId: comment.id }
+      )
+    })
+    return { ok: true, comment }
+  }
+
+  updateTaskComment(commentId, instructorId, body) {
+    const comment = this.data.taskComments.find(c => c.id === commentId)
+    if (!comment) return { ok: false, error: 'Task feedback not found.' }
+    if (comment.instructorId !== instructorId) return { ok: false, error: 'You can only edit your own task feedback.' }
+    const text = body?.trim()
+    if (!text) return { ok: false, error: 'Task feedback is required.' }
+    const taskComments = this.data.taskComments.map(c =>
+      c.id === commentId ? { ...c, body: text, updatedAt: new Date().toISOString() } : c
+    )
+    this._persist({ ...this.data, taskComments })
+    return { ok: true }
+  }
+
+  deleteTaskComment(commentId, instructorId) {
+    const comment = this.data.taskComments.find(c => c.id === commentId)
+    if (!comment) return { ok: false, error: 'Task feedback not found.' }
+    if (comment.instructorId !== instructorId) return { ok: false, error: 'You can only remove your own task feedback.' }
+    this._persist({ ...this.data, taskComments: this.data.taskComments.filter(c => c.id !== commentId) })
+    return { ok: true }
+  }
+
+  getRecommendedProjects(userId) {
+    const user = this.getAllUsers().find(u => u.id === userId)
+    const favorites = this.getFavorites(userId)
+    const favoriteProjects = this.data.projects.filter(p => favorites.projects.includes(p.id))
+    const skillSet = new Set((user?.skills ?? []).map(skill => skill.toLowerCase()))
+    favoriteProjects.forEach(project => (project.languages ?? []).forEach(lang => skillSet.add(lang.toLowerCase())))
+
+    return this.data.projects
+      .filter(project =>
+        project.visibility !== 'private' &&
+        project.isActive &&
+        project.ownerId !== userId &&
+        !favorites.projects.includes(project.id)
+      )
+      .map(project => {
+        const rating = this.getProjectRating(project.id)
+        const skillScore = (project.languages ?? []).filter(lang => skillSet.has(lang.toLowerCase())).length
+        return { ...project, recommendationScore: skillScore * 10 + rating.average }
+      })
+      .sort((a, b) => b.recommendationScore - a.recommendationScore || new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5)
+  }
+
+  // -- Internships -----------------------------------------------------------
+
+  getInternships() {
+    return [...this.data.internships]
+  }
+
+  getOpenInternships() {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return this.data.internships.filter((internship) => {
+      if (internship.isArchived) return false
+      if (internship.hiringStatus === 'filled') return false
+      if (!internship.deadline) return true
+      const deadline = new Date(internship.deadline)
+      deadline.setHours(23, 59, 59, 999)
+      return deadline >= today
+    })
+  }
+
+  getInternshipById(id) {
+    return this.data.internships.find(i => i.id === id) ?? null
+  }
+
+  getEmployerInternships(employerId) {
+    return this.data.internships.filter(i => i.employerId === employerId)
+  }
+
+  createInternship(employerId, payload) {
+    const employer = this.getUserById(employerId, 'employer')
+    if (!employer) return { ok: false, error: 'Employer not found.' }
+    if (employer.status !== 'accepted') return { ok: false, error: 'Your company must be accepted before posting internships.' }
+
+    const title = payload.title?.trim()
+    const description = payload.description?.trim()
+    if (!title) return { ok: false, error: 'Internship title is required.' }
+    if (!description) return { ok: false, error: 'Description is required.' }
+
+    const internship = {
+      id: uid('internship'),
+      employerId,
+      title,
+      description,
+      requirements: payload.requirements?.trim() || '',
+      languages: Array.isArray(payload.languages) ? payload.languages.filter(Boolean) : [],
+      location: payload.location?.trim() || '',
+      workMode: payload.workMode || 'On-site',
+      duration: payload.duration?.trim() || '',
+      paid: Boolean(payload.paid),
+      deadline: payload.deadline || '',
+      hiringStatus: payload.hiringStatus === 'filled' ? 'filled' : 'hiring',
+      createdAt: new Date().toISOString(),
+      isArchived: false,
+    }
+
+    this._persist({ ...this.data, internships: [internship, ...this.data.internships] })
+    return { ok: true, internship }
+  }
+
+  updateInternship(id, employerId, payload) {
+    const internship = this.getInternshipById(id)
+    if (!internship) return { ok: false, error: 'Internship not found.' }
+    if (internship.employerId !== employerId) return { ok: false, error: 'You can only update your own internships.' }
+
+    const title = payload.title?.trim()
+    const description = payload.description?.trim()
+    if (payload.title !== undefined && !title) return { ok: false, error: 'Internship title is required.' }
+    if (payload.description !== undefined && !description) return { ok: false, error: 'Description is required.' }
+
+    const internships = this.data.internships.map(i =>
+      i.id === id
+        ? {
+            ...i,
+            ...payload,
+            title: payload.title !== undefined ? title : i.title,
+            description: payload.description !== undefined ? description : i.description,
+            requirements: payload.requirements !== undefined ? payload.requirements.trim() : i.requirements,
+            languages: payload.languages !== undefined ? (Array.isArray(payload.languages) ? payload.languages.filter(Boolean) : []) : i.languages ?? [],
+            location: payload.location !== undefined ? payload.location.trim() : i.location,
+            duration: payload.duration !== undefined ? payload.duration.trim() : i.duration,
+            paid: payload.paid !== undefined ? Boolean(payload.paid) : i.paid,
+            hiringStatus: payload.hiringStatus !== undefined ? (payload.hiringStatus === 'filled' ? 'filled' : 'hiring') : i.hiringStatus ?? 'hiring',
+          }
+        : i
+    )
+    this._persist({ ...this.data, internships })
+    return { ok: true }
+  }
+
+  archiveInternship(id, employerId, isArchived = true) {
+    const internship = this.getInternshipById(id)
+    if (!internship) return { ok: false, error: 'Internship not found.' }
+    if (internship.employerId !== employerId) return { ok: false, error: 'You can only archive your own internships.' }
+    if (isArchived) {
+      if (!internship.deadline) return { ok: false, error: 'Internships can only be archived after their application deadline passes.' }
+      const deadline = new Date(internship.deadline)
+      deadline.setHours(23, 59, 59, 999)
+      if (deadline >= new Date()) return { ok: false, error: 'Internships can only be archived after their application deadline passes.' }
+    }
+    const internships = this.data.internships.map(i =>
+      i.id === id ? { ...i, isArchived } : i
+    )
+    this._persist({ ...this.data, internships })
+    return { ok: true }
+  }
+
+  deleteInternship(id, employerId) {
+    const internship = this.getInternshipById(id)
+    if (!internship) return { ok: false, error: 'Internship not found.' }
+    if (internship.employerId !== employerId) return { ok: false, error: 'You can only delete your own internships.' }
+    this._persist({
+      ...this.data,
+      internships: this.data.internships.filter(i => i.id !== id),
+      internshipApplications: this.data.internshipApplications.filter(a => a.internshipId !== id),
+    })
+    return { ok: true }
+  }
+
+  getStudentInternshipApplications(studentId) {
+    return this.data.internshipApplications
+      .filter(a => a.studentId === studentId)
+      .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt))
+  }
+
+  getInternshipApplications(internshipId) {
+    return this.data.internshipApplications
+      .filter(a => a.internshipId === internshipId)
+      .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt))
+  }
+
+  applyToInternship(internshipId, studentId, coverLetter) {
+    const internship = this.getInternshipById(internshipId)
+    if (!internship) return { ok: false, error: 'Internship not found.' }
+    if (internship.isArchived) return { ok: false, error: 'This internship is archived.' }
+    if (this.data.internshipApplications.some(a => a.internshipId === internshipId && a.studentId === studentId)) {
+      return { ok: false, error: 'You already applied to this internship.' }
+    }
+    const text = coverLetter?.trim()
+    if (!text) return { ok: false, error: 'Cover letter is required.' }
+
+    const application = {
+      id: uid('application'),
+      internshipId,
+      studentId,
+      coverLetter: text,
+      status: 'pending',
+      appliedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    this._persist({
+      ...this.data,
+      internshipApplications: [application, ...this.data.internshipApplications],
+    })
+
+    const studentName = this._getUserDisplayName(studentId)
+    this.addNotification(
+      internship.employerId,
+      `${studentName} applied to "${internship.title}".`,
+      'internship_application',
+      { internshipId, applicationId: application.id, studentId }
+    )
+    return { ok: true, application }
+  }
+
+  setInternshipApplicationStatus(applicationId, employerId, status) {
+    if (!['nominated', 'accepted', 'rejected', 'completed'].includes(status)) {
+      return { ok: false, error: 'Invalid application status.' }
+    }
+
+    const application = this.data.internshipApplications.find(a => a.id === applicationId)
+    if (!application) return { ok: false, error: 'Application not found.' }
+    const internship = this.getInternshipById(application.internshipId)
+    if (!internship) return { ok: false, error: 'Internship not found.' }
+    if (internship.employerId !== employerId) return { ok: false, error: 'You can only manage applicants for your own internships.' }
+
+    const internshipApplications = this.data.internshipApplications.map(a =>
+      a.id === applicationId ? { ...a, status, updatedAt: new Date().toISOString() } : a
+    )
+    this._persist({ ...this.data, internshipApplications })
+
+    const verb = status === 'completed' ? 'marked as completed' : status
+    this.addNotification(
+      application.studentId,
+      `Your application for "${internship.title}" was ${verb}.`,
+      'internship_status',
+      { internshipId: internship.id, applicationId }
+    )
+    return { ok: true }
+  }
+
+  getInternshipStats(employerId = null) {
+    const internships = employerId
+      ? this.data.internships.filter(i => i.employerId === employerId)
+      : this.data.internships
+    const internshipIds = new Set(internships.map(i => i.id))
+    const applications = this.data.internshipApplications.filter(a => internshipIds.has(a.internshipId))
+    return {
+      totalInternships: internships.length,
+      activeInternships: internships.filter(i => !i.isArchived).length,
+      archivedInternships: internships.filter(i => i.isArchived).length,
+      totalApplications: applications.length,
+      pendingApplications: applications.filter(a => a.status === 'pending').length,
+      nominatedApplications: applications.filter(a => a.status === 'nominated').length,
+      acceptedApplications: applications.filter(a => a.status === 'accepted').length,
+      rejectedApplications: applications.filter(a => a.status === 'rejected').length,
+      completedInternships: applications.filter(a => a.status === 'completed').length,
+    }
+  }
+
+  getCompletedInternshipsForStudent(studentId) {
+    return this.data.internshipApplications
+      .filter(application => application.studentId === studentId && application.status === 'completed')
+      .map(application => ({
+        application,
+        internship: this.getInternshipById(application.internshipId),
+      }))
+      .filter(item => item.internship)
+      .sort((a, b) => new Date(b.application.updatedAt) - new Date(a.application.updatedAt))
+  }
+
+  getTopSuggestedApplications(employerId) {
+    const internships = this.getEmployerInternships(employerId)
+    const internshipIds = new Set(internships.map(i => i.id))
+    const favoriteEntries = this.data.favorites
+    return this.data.internshipApplications
+      .filter(application => internshipIds.has(application.internshipId))
+      .map(application => {
+        const student = this.getUserById(application.studentId, 'student')
+        const internship = this.getInternshipById(application.internshipId)
+        const requirements = `${internship?.requirements ?? ''} ${(internship?.languages ?? []).join(' ')}`.toLowerCase()
+        const skillScore = (student?.skills ?? []).filter(skill => requirements.includes(skill.toLowerCase())).length
+        const portfolioFavoriteScore = favoriteEntries.filter(entry => (entry.portfolios ?? []).includes(application.studentId)).length
+        const completedScore = this.getCompletedInternshipsForStudent(application.studentId).length
+        return {
+          application,
+          student,
+          internship,
+          score: skillScore * 3 + portfolioFavoriteScore * 2 + completedScore,
+        }
+      })
+      .sort((a, b) => b.score - a.score || new Date(b.application.appliedAt) - new Date(a.application.appliedAt))
+  }
 
   getStats() {
     const students        = this.data.students.filter(u => u.role === 'student').length
@@ -950,14 +1758,16 @@ class DummyDataStore {
     const flaggedProjects = this.data.projects.filter(p => p.isFlagged).length
     const activeProjects  = this.data.projects.filter(p => p.isActive).length
     const pendingLinks    = this.data.linkRequests.filter(r => r.status === 'pending').length
+    const internshipStats = this.getInternshipStats()
     return {
       students, instructors, employers, totalUsers,
       totalProjects, activeProjects, totalCourses,
       pendingEmployers, flaggedProjects, pendingLinks,
+      ...internshipStats,
     }
   }
 
-  // ── Notifications ────────────────────────────────────────────────────────────
+  //  Notifications 
 
   getNotifications(userId) {
     return this.data.notifications
@@ -1019,7 +1829,7 @@ class DummyDataStore {
     }
   }
 
-  // ── Favorites ──────────────────────────────────────────────────────────────
+  //  Favorites 
 
   _getFavoritesEntry(userId) {
     const list = Array.isArray(this.data.favorites) ? this.data.favorites : []
@@ -1076,7 +1886,7 @@ class DummyDataStore {
     return { ok: true, isFavorite: !has }
   }
 
-  // ── Messages ───────────────────────────────────────────────────────────────
+  //  Messages 
 
   getMessages() {
     return [...this.data.messages]
@@ -1159,7 +1969,7 @@ class DummyDataStore {
     return { ok: true, message }
   }
 
-  // ── Instructor search ────────────────────────────────────────────────────────
+  //  Instructor search 
 
   searchInstructors(query) {
     const q = query.trim().toLowerCase()

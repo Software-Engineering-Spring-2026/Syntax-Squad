@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
@@ -26,7 +26,7 @@ function NewMessageModal({ users, onClose, onStart }) {
       <div className="modal-card" style={{ maxWidth: 420 }}>
         <div className="modal-header">
           <h2 className="modal-title">New message</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <form onSubmit={handleSubmit} noValidate className="modal-body">
           <div className="form-field">
@@ -69,7 +69,7 @@ function NewMessageModal({ users, onClose, onStart }) {
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
-          {error && <div className="alert alert-error"><span aria-hidden="true">⚠</span> {error}</div>}
+          {error && <div className="alert alert-error"><span aria-hidden="true"></span> {error}</div>}
           <div className="modal-footer" style={{ paddingTop: 8 }}>
             <button type="submit" className="btn btn-primary">Start chat</button>
             <button type="button" className="btn btn-outline" onClick={onClose}>Cancel</button>
@@ -102,18 +102,20 @@ export default function MessagesPage() {
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
-  const refreshThreads = () => setThreads(store.getThreadsForUser(currentUser.id))
+  const refreshThreads = useCallback(() => {
+    setThreads(store.getThreadsForUser(currentUser.id))
+  }, [currentUser.id])
 
-  const selectThread = (otherId) => {
+  const selectThread = useCallback((otherId) => {
     setActiveId(otherId)
     store.markThreadRead(currentUser.id, otherId)
     setMessages(store.getThreadMessages(currentUser.id, otherId))
     refreshThreads()
-  }
+  }, [currentUser.id, refreshThreads])
 
   useEffect(() => {
     refreshThreads()
-  }, [])
+  }, [refreshThreads])
 
   useEffect(() => {
     if (!activeId) return
@@ -125,7 +127,7 @@ export default function MessagesPage() {
     if (userId) {
       selectThread(userId)
     }
-  }, [searchParams])
+  }, [searchParams, selectThread])
 
   const handleSend = (e) => {
     e.preventDefault()
@@ -197,7 +199,7 @@ export default function MessagesPage() {
                     <span className="chat-time muted-text">{time}</span>
                   </div>
                   <div className="chat-row">
-                    <span className="chat-role-badge">Role: {user?.role ?? '—'}</span>
+                    <span className="chat-role-badge">Role: {user?.role ?? ''}</span>
                   </div>
                   <div className="chat-row">
                     <span className="chat-preview">{t.lastMessage?.body ?? ''}</span>

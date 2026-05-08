@@ -26,7 +26,7 @@ function AvatarUpload({ user, onUpload }) {
         {user.profilePicture ? 'Change logo' : 'Upload logo'}
       </button>
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
-      <p className="field-hint">Company logo · JPG, PNG · max 2 MB</p>
+      <p className="field-hint">Company logo  JPG, PNG  max 2 MB</p>
     </div>
   )
 }
@@ -82,9 +82,9 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
     new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
   const getIcon = (name) => {
-    if (name.endsWith('.pdf')) return '📄'
-    if (name.match(/\.(jpg|jpeg|png|gif)$/i)) return '🖼'
-    return '📎'
+    if (name.endsWith('.pdf')) return ''
+    if (name.match(/\.(jpg|jpeg|png|gif)$/i)) return ''
+    return ''
   }
 
   return (
@@ -117,8 +117,8 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
         )}
       </div>
 
-      {error   && <div className="alert alert-error"   style={{ marginTop: 12 }}><span aria-hidden="true">⚠</span> {error}</div>}
-      {success && <div className="alert alert-success" style={{ marginTop: 12 }}><span aria-hidden="true">✓</span> {success}</div>}
+      {error   && <div className="alert alert-error"   style={{ marginTop: 12 }}><span aria-hidden="true"></span> {error}</div>}
+      {success && <div className="alert alert-success" style={{ marginTop: 12 }}><span aria-hidden="true"></span> {success}</div>}
 
       <div style={{ marginTop: 16 }}>
         <button type="button" className="btn btn-outline" onClick={() => docRef.current?.click()}>
@@ -131,7 +131,7 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
           style={{ display: 'none' }}
           onChange={handleUpload}
         />
-        <p className="field-hint" style={{ marginTop: 6 }}>PDF, JPG, PNG, DOC · max 10 MB per file</p>
+        <p className="field-hint" style={{ marginTop: 6 }}>PDF, JPG, PNG, DOC  max 10 MB per file</p>
       </div>
 
       {pendingDoc && (
@@ -145,7 +145,7 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
                 onClick={() => setPendingDoc('')}
                 aria-label="Close"
               >
-                ×
+                
               </button>
             </div>
             <div className="modal-body">
@@ -198,8 +198,12 @@ export default function EmployerProfilePage() {
   }
 
   const openMap = () => {
-    if (!form.address.trim()) { alert('Enter an address first.'); return }
-    window.open(`https://maps.google.com/?q=${encodeURIComponent(form.address)}`, '_blank', 'noopener')
+    const mapTarget = form.location.trim() || form.address.trim()
+    if (!mapTarget) { alert('Enter an address or map location first.'); return }
+    const url = /^https?:\/\//i.test(mapTarget)
+      ? mapTarget
+      : `https://maps.google.com/?q=${encodeURIComponent(mapTarget)}`
+    window.open(url, '_blank', 'noopener')
   }
 
   const statusLabel = { pending: 'Pending review', accepted: 'Verified', rejected: 'Rejected' }
@@ -252,7 +256,7 @@ export default function EmployerProfilePage() {
               <textarea
                 id="ep-bio"
                 className="field-textarea"
-                placeholder="Describe your company, mission, and what makes it unique…"
+                placeholder="Describe your company, mission, and what makes it unique"
                 rows={4}
                 value={form.bio}
                 onChange={e => set('bio', e.target.value)}
@@ -292,19 +296,32 @@ export default function EmployerProfilePage() {
                   onClick={openMap}
                   title="Preview on Google Maps"
                 >
-                  🗺 Map
+                   Map
                 </button>
               </div>
               <span className="field-hint">Click "Map" to preview your address on Google Maps in a new tab.</span>
             </div>
 
-            {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
-            {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true">✓</span> Profile saved successfully.</div>}
+            <div className="form-field">
+              <label htmlFor="ep-location" className="field-label">Map location</label>
+              <input
+                id="ep-location"
+                type="text"
+                className="field-input"
+                placeholder="Google Maps link or coordinates"
+                value={form.location}
+                onChange={e => set('location', e.target.value)}
+              />
+              <span className="field-hint">Save a precise map link or coordinates for your company location.</span>
+            </div>
+
+            {error && <div className="alert alert-error" role="alert"><span aria-hidden="true"></span> {error}</div>}
+            {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true"></span> Profile saved successfully.</div>}
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={saving || !dirty}>
                 {saving ? <span className="btn-spinner" /> : null}
-                {saving ? 'Saving…' : 'Save changes'}
+                {saving ? 'Saving' : 'Save changes'}
               </button>
               {dirty && (
                 <button

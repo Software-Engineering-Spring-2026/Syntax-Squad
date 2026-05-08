@@ -16,18 +16,53 @@ export default function BrowsePortfoliosPage() {
   const [search, setSearch] = useState('')
   const [toast, setToast] = useState('')
   const [favorites, setFavorites] = useState(() => store.getFavorites(currentUser.id))
+  const [majorFilter, setMajorFilter] = useState('')
+  const [skillFilter, setSkillFilter] = useState('')
+  const [sort, setSort] = useState('name')
 
-  const students = useMemo(() => {
-    return store.getAllUsers().filter(u => u.role === 'student')
-  }, [])
+  const students = useMemo(() => store.getAllUsers().filter(u => u.role === 'student'), [])
+  const projects = useMemo(() => store.getProjects(), [])
+
+  const majors = useMemo(() => {
+    return Array.from(new Set(students.map(s => s.major).filter(Boolean))).sort()
+  }, [students])
+
+  const skills = useMemo(() => {
+    return Array.from(new Set(students.flatMap(s => s.skills ?? []).filter(Boolean))).sort()
+  }, [students])
+
+  const projectCounts = useMemo(() => {
+    const counts = {}
+    projects
+      .filter(p => p.visibility !== 'private' && p.isActive)
+      .forEach(p => {
+        counts[p.ownerId] = (counts[p.ownerId] || 0) + 1
+      })
+    return counts
+  }, [projects])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return students
-    return students.filter(s => s.displayName.toLowerCase().includes(q))
-  }, [students, search])
+    const list = students.filter(s => {
+      const haystack = `${s.displayName} ${s.email ?? ''} ${s.primaryEmail ?? ''}`.toLowerCase()
+      if (q && !haystack.includes(q)) return false
+      if (majorFilter && s.major !== majorFilter) return false
+      if (skillFilter && !(s.skills ?? []).includes(skillFilter)) return false
+      return true
+    })
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
+    return [...list].sort((a, b) => {
+      if (sort === 'projects-desc') return (projectCounts[b.id] || 0) - (projectCounts[a.id] || 0) || a.displayName.localeCompare(b.displayName)
+      if (sort === 'projects-asc') return (projectCounts[a.id] || 0) - (projectCounts[b.id] || 0) || a.displayName.localeCompare(b.displayName)
+      if (sort === 'major') return (a.major || '').localeCompare(b.major || '') || a.displayName.localeCompare(b.displayName)
+      return a.displayName.localeCompare(b.displayName)
+    })
+  }, [students, search, majorFilter, skillFilter, sort, projectCounts])
+
+  const showToast = (msg) => {
+    setToast(msg)
+    setTimeout(() => setToast(''), 3000)
+  }
 
   const handleToggleFavorite = (studentId) => {
     const result = store.toggleFavoritePortfolio(currentUser.id, studentId)
@@ -42,25 +77,53 @@ export default function BrowsePortfoliosPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Browse Portfolios</h1>
-          <p className="page-subtitle">Explore student portfolios.</p>
+          <p className="page-subtitle">Explore student portfolios by name, email, major, skills, and public project count.</p>
         </div>
       </div>
 
       {toast && <div className="toast toast-success">{toast}</div>}
 
-      <div className="search-bar-wrap" style={{ marginBottom: 20 }}>
+      <div className="search-bar-wrap" style={{ marginBottom: 16 }}>
         <div className="search-bar">
-          <span className="search-icon" aria-hidden="true">🔍</span>
+          <span className="search-icon" aria-hidden="true">Search</span>
           <input
             type="text"
-            placeholder="Search by student name..."
+            placeholder="Search by student name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="search-input"
           />
           {search && (
-            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear">×</button>
+            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear">x</button>
           )}
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="detail-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+          <div className="form-field">
+            <label className="field-label">Major</label>
+            <select className="field-input" value={majorFilter} onChange={(e) => setMajorFilter(e.target.value)}>
+              <option value="">All majors</option>
+              {majors.map(major => <option key={major} value={major}>{major}</option>)}
+            </select>
+          </div>
+          <div className="form-field">
+            <label className="field-label">Skill</label>
+            <select className="field-input" value={skillFilter} onChange={(e) => setSkillFilter(e.target.value)}>
+              <option value="">All skills</option>
+              {skills.map(skill => <option key={skill} value={skill}>{skill}</option>)}
+            </select>
+          </div>
+          <div className="form-field">
+            <label className="field-label">Sort by</label>
+            <select className="field-input" value={sort} onChange={(e) => setSort(e.target.value)}>
+              <option value="name">Name</option>
+              <option value="major">Major</option>
+              <option value="projects-desc">Project count: high to low</option>
+              <option value="projects-asc">Project count: low to high</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -69,29 +132,31 @@ export default function BrowsePortfoliosPage() {
           <thead>
             <tr>
               <th>Student</th>
+              <th>Email</th>
               <th>Major</th>
               <th>Skills</th>
+              <th>Public projects</th>
               <th>Favorite</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
-              <tr><td colSpan={5} className="table-empty">No portfolios found.</td></tr>
+              <tr><td colSpan={7} className="table-empty">No portfolios found.</td></tr>
             )}
             {filtered.map((s) => (
               <tr key={s.id}>
                 <td className="table-name">{s.displayName}</td>
-                <td className="muted-text">{s.major || '—'}</td>
+                <td className="muted-text">{s.primaryEmail || s.email || '-'}</td>
+                <td className="muted-text">{s.major || '-'}</td>
                 <td>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {(s.skills ?? []).length > 0
-                      ? s.skills.map(skill => (
-                          <span key={skill} className="badge badge-blue">{skill}</span>
-                        ))
-                      : <span className="muted-text" style={{ fontSize: 13 }}>—</span>}
+                      ? s.skills.map(skill => <span key={skill} className="badge badge-blue">{skill}</span>)
+                      : <span className="muted-text" style={{ fontSize: 13 }}>-</span>}
                   </div>
                 </td>
+                <td><span className="badge badge-info">{projectCounts[s.id] || 0}</span></td>
                 <td>
                   <button
                     type="button"
@@ -103,7 +168,13 @@ export default function BrowsePortfoliosPage() {
                   </button>
                 </td>
                 <td>
-                  <Link to={`/portfolios/${s.id}`} className="btn btn-outline btn-sm">View</Link>
+                  <Link
+                    to={`/portfolios/${s.id}`}
+                    state={{ from: '/browse/portfolios', fromLabel: 'portfolios' }}
+                    className="btn btn-outline btn-sm"
+                  >
+                    View
+                  </Link>
                 </td>
               </tr>
             ))}

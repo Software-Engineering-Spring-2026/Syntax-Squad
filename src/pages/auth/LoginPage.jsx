@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
-const GUC_EMAIL = /^[^\s@]+@(student\.)?guc\.edu\.eg$/i
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i
 
 function EyeIcon({ visible }) {
   return (
@@ -27,6 +27,9 @@ export default function LoginPage() {
   const [password,        setPassword]        = useState('')
   const [confirm,         setConfirm]         = useState('')
   const [companyName,     setCompanyName]     = useState('')
+  const [companyAddress,  setCompanyAddress]  = useState('')
+  const [companyLocation, setCompanyLocation] = useState('')
+  const [companyDocs,     setCompanyDocs]     = useState([])
   const [remember,        setRemember]        = useState(false)
   const [showPw,          setShowPw]          = useState(false)
   const [showConfirm,     setShowConfirm]     = useState(false)
@@ -37,6 +40,7 @@ export default function LoginPage() {
   const [loading,         setLoading]         = useState(false)
   const [signupSuccess,   setSignupSuccess]   = useState(false)
   const [successEmail,    setSuccessEmail]    = useState('')
+  const docRef = useRef(null)
 
   useEffect(() => {
     if (currentUser) navigate(currentUser.role === 'admin' ? '/admin' : '/', { replace: true })
@@ -52,20 +56,22 @@ export default function LoginPage() {
     setFirstName('')
     setLastName('')
     setCompanyName('')
+    setCompanyAddress('')
+    setCompanyLocation('')
+    setCompanyDocs([])
     setEmailBlurred(false)
     setSignupSuccess(false)
     setSuccessEmail('')
   }, [tab, role])
 
   const isEmployer = tab === 'signup' && role === 'employer'
-  const emailValue = isEmployer ? email : email
 
   const emailValid =
     tab === 'signin'
       ? email.trim().length > 0
       : isEmployer
       ? email.trim().length > 0
-      : GUC_EMAIL.test(email)
+      : EMAIL_PATTERN.test(email)
 
   const showEmailError = (emailBlurred || attempted) && !emailValid
   const showPasswordError = attempted && !password.trim()
@@ -101,7 +107,14 @@ export default function LoginPage() {
       let result
       if (isEmployer) {
         if (!companyName.trim()) { setError('Company name is required.'); setLoading(false); return }
-        result = store.registerEmployer({ companyName, companyEmail: email, password })
+        result = store.registerEmployer({
+          companyName,
+          companyEmail: email,
+          password,
+          address: companyAddress,
+          location: companyLocation,
+          documents: companyDocs,
+        })
       } else {
         if (!firstName.trim() || !lastName.trim()) { setError('First and last name are required.'); setLoading(false); return }
         result = store.registerStudent({ firstName, lastName, email, password, role })
@@ -123,8 +136,32 @@ export default function LoginPage() {
       navigate(result.user.role === 'admin' ? '/admin' : '/', { replace: true })
       return
     }
+  }
 
-    navigate('/', { replace: true })
+  const handleEmployerDoc = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Verification document must be under 10 MB.')
+      e.target.value = ''
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      setCompanyDocs(docs => [
+        ...docs.filter(doc => doc.name !== file.name),
+        {
+          name: file.name,
+          uploadedAt: new Date().toISOString(),
+          dataUrl: reader.result,
+          mime: file.type || 'application/octet-stream',
+          size: file.size,
+        },
+      ])
+      e.target.value = ''
+    }
+    reader.onerror = () => setError('Could not read the selected document.')
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -201,7 +238,16 @@ export default function LoginPage() {
                     className={`role-tab ${role === 'student' ? 'role-tab-active' : ''}`}
                     onClick={() => setRole('student')}
                   >
-                    Student / Course instructor
+                    Student
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={role === 'instructor'}
+                    className={`role-tab ${role === 'instructor' ? 'role-tab-active' : ''}`}
+                    onClick={() => setRole('instructor')}
+                  >
+                    Course instructor
                   </button>
                   <button
                     type="button"
@@ -232,6 +278,65 @@ export default function LoginPage() {
                   required
                 />
               </div>
+            )}
+
+            {tab === 'signup' && isEmployer && (
+              <>
+                <div className="form-field">
+                  <label htmlFor="companyAddress" className="field-label">Company address</label>
+                  <input
+                    id="companyAddress"
+                    type="text"
+                    autoComplete="street-address"
+                    placeholder="Street, city, country"
+                    value={companyAddress}
+                    onChange={e => setCompanyAddress(e.target.value)}
+                    className="field-input"
+                  />
+                </div>
+                <div className="form-field">
+                  <label htmlFor="companyLocation" className="field-label">Map location</label>
+                  <input
+                    id="companyLocation"
+                    type="text"
+                    placeholder="Google Maps link or coordinates"
+                    value={companyLocation}
+                    onChange={e => setCompanyLocation(e.target.value)}
+                    className="field-input"
+                  />
+                </div>
+                <div className="form-field">
+                  <span className="field-label">Verification documents</span>
+                  <button type="button" className="btn btn-outline" onClick={() => docRef.current?.click()}>
+                    Upload document
+                  </button>
+                  <input
+                    ref={docRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    style={{ display: 'none' }}
+                    onChange={handleEmployerDoc}
+                  />
+                  <span className="field-hint">Attach tax certificate, commercial registry, or license. Max 10 MB.</span>
+                  {companyDocs.length > 0 && (
+                    <div className="skills-list">
+                      {companyDocs.map(doc => (
+                        <span key={doc.name} className="skill-tag skill-tag-sm">
+                          {doc.name}
+                          <button
+                            type="button"
+                            className="skill-remove"
+                            onClick={() => setCompanyDocs(docs => docs.filter(item => item.name !== doc.name))}
+                            aria-label={`Remove ${doc.name}`}
+                          >
+                            x
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
 
             {/* First / Last name (student/instructor signup) */}
@@ -279,12 +384,10 @@ export default function LoginPage() {
                 autoComplete={tab === 'signin' ? 'username' : 'email'}
                 placeholder={
                   tab === 'signin'
-                    ? 'your@guc.edu.eg or admin'
+                    ? 'you@example.com or admin'
                     : isEmployer
                     ? 'company@example.com'
-                    : tab === 'signup'
-                    ? 'name@student.guc.edu.eg'
-                    : 'your@guc.edu.eg'
+                    : 'you@example.com'
                 }
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -297,7 +400,7 @@ export default function LoginPage() {
               {showEmailError && (
                 <span id="email-err" className="field-error" role="alert">
                   {tab === 'signup' && !isEmployer
-                    ? 'Use your GUC email (e.g. name@student.guc.edu.eg)'
+                    ? 'Enter a valid email address.'
                     : 'Email is required.'}
                 </span>
               )}
@@ -388,14 +491,16 @@ export default function LoginPage() {
             {/* Employer pending notice */}
             {tab === 'signup' && isEmployer && (
               <div className="alert alert-info">
-                <span className="alert-icon" aria-hidden="true">ℹ</span>
+                <span className="alert-icon" aria-hidden="true"></span>
                 After signing up, your account will be reviewed by an administrator before you can access all features.
               </div>
             )}
 
+            {error && <div className="alert alert-error">{error}</div>}
+
             <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
               {loading ? <span className="btn-spinner" aria-hidden="true" /> : null}
-              {loading ? 'Please wait…' : tab === 'signup' ? 'Create account' : 'Sign in'}
+              {loading ? 'Please wait' : tab === 'signup' ? 'Create account' : 'Sign in'}
             </button>
           </form>
           )}

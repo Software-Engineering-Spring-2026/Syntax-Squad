@@ -3,18 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
-const TYPE_ICONS = {
-  employer_registration: '🏢',
-  link_request: '🔗',
-  link_resolved: '✅',
-  project_flagged: '🚩',
-  project_appeal: '💬',
-  private_message: '✉️',
-  project_invite: '📨',
-  registration_status: '📋',
-  general: '🔔',
-}
-
 function timeAgo(iso) {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000
   if (diff < 60) return 'Just now'
@@ -40,6 +28,11 @@ export default function NotificationsPage() {
     refresh()
   }
 
+  const handleToggleRead = (notification) => {
+    store.markNotificationRead(notification.id, !notification.isRead)
+    refresh()
+  }
+
   const handleToggleNotifications = () => {
     store.setNotificationsEnabled(currentUser.id, currentUser.role, !notifEnabled)
     refreshUser()
@@ -59,8 +52,24 @@ export default function NotificationsPage() {
       navigate(`/admin/appeals?projectId=${notification.projectId}`)
     }
 
+    if (notification.type === 'project_feedback' && notification.projectId) {
+      navigate(`/projects/${notification.projectId}`)
+    }
+
+    if (notification.type === 'task_feedback' && notification.projectId) {
+      navigate(`/projects/${notification.projectId}`)
+    }
+
     if (notification.type === 'private_message' && notification.senderId) {
       navigate(`/messages?userId=${notification.senderId}`)
+    }
+
+    if (notification.type === 'internship_application') {
+      navigate('/my-internships')
+    }
+
+    if (notification.type === 'internship_status') {
+      navigate('/internships')
     }
   }
 
@@ -116,14 +125,13 @@ export default function NotificationsPage() {
             onClick={handleToggleNotifications}
             title={notifEnabled ? 'Turn off all notifications' : 'Turn on notifications'}
           >
-            {notifEnabled ? '🔕 Turn off' : '🔔 Turn on'}
+            {notifEnabled ? 'Turn off' : 'Turn on'}
           </button>
         </div>
       </div>
 
       {!notifEnabled && (
         <div className="alert alert-warning" style={{ marginBottom: 16 }}>
-          <span aria-hidden="true">🔕</span>&nbsp;
           Notifications are turned off. You won't receive new alerts until you turn them back on.
         </div>
       )}
@@ -168,12 +176,17 @@ export default function NotificationsPage() {
               tabIndex={0}
               aria-label={n.isRead ? 'Notification, read' : 'Notification, unread'}
             >
-              <span className="notif-type-icon" aria-hidden="true">
-                {TYPE_ICONS[n.type] ?? '🔔'}
-              </span>
               <div className="notif-body">
                 <p className="notif-message">{n.message}</p>
                 <span className="notif-time muted-text">{timeAgo(n.createdAt)}</span>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                  <button
+                    className="btn btn-sm btn-outline"
+                    onClick={(e) => { e.stopPropagation(); handleToggleRead(n) }}
+                  >
+                    Mark as {n.isRead ? 'unread' : 'read'}
+                  </button>
+                </div>
                 {n.type === 'project_invite' && (
                   <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                     <button

@@ -21,8 +21,11 @@ import MyProjectsPage             from './pages/projects/MyProjectsPage'
 import ProjectDetailsPage         from './pages/projects/ProjectDetailsPage'
 import MessagesPage               from './pages/messages/MessagesPage'
 import BrowsePortfoliosPage       from './pages/portfolios/BrowsePortfoliosPage'
+import PortfolioDetailsPage       from './pages/portfolios/PortfolioDetailsPage'
 import FavoritesPage              from './pages/favorites/FavoritesPage'
 import InvitationsPage            from './pages/invitations/InvitationsPage'
+import BrowseInternshipsPage      from './pages/internships/BrowseInternshipsPage'
+import MyInternshipsPage          from './pages/internships/MyInternshipsPage'
 
 // Notification page
 import NotificationsPage from './pages/notifications/NotificationsPage'
@@ -39,13 +42,13 @@ import AdminProjectsPage from './pages/admin/AdminProjectsPage'
 import AdminAppealsPage  from './pages/admin/AdminAppealsPage'
 
 import './App.css'
-
-// ── Placeholder for routes other members will build ──────────────────────────
+//  Placeholder for routes other members will build 
+// eslint-disable-next-line no-unused-vars
 function Placeholder({ title }) {
   return (
     <div className="page-container">
       <div className="placeholder-page">
-        <div className="placeholder-icon" aria-hidden="true">🚧</div>
+        <div className="placeholder-icon" aria-hidden="true"></div>
         <h1>{title}</h1>
         <p className="muted-text">This section is under development by another team member.</p>
       </div>
@@ -53,7 +56,7 @@ function Placeholder({ title }) {
   )
 }
 
-// ── Route guards ─────────────────────────────────────────────────────────────
+//  Route guards 
 function RequireAuth({ children, roles }) {
   const { currentUser } = useAuth()
   const location = useLocation()
@@ -62,7 +65,7 @@ function RequireAuth({ children, roles }) {
   return children
 }
 
-// ── Layout wrapper for non-admin routes ─────────────────────────────────────
+//  Layout wrapper for non-admin routes 
 function AppLayout({ children }) {
   const { currentUser } = useAuth()
   if (!currentUser || currentUser.role === 'admin') return children
@@ -74,14 +77,14 @@ function AppLayout({ children }) {
   )
 }
 
-// ── Profile route: renders correct page based on role ────────────────────────
+//  Profile route: renders correct page based on role 
 function ProfileRoute() {
   const { currentUser } = useAuth()
   if (currentUser.role === 'instructor') return <InstructorProfilePage />
   return <StudentProfilePage />
 }
 
-// ── Main routes ──────────────────────────────────────────────────────────────
+//  Main routes 
 function AppRoutes() {
   const { currentUser } = useAuth()
 
@@ -148,7 +151,7 @@ function AppRoutes() {
         <Route path="flagged"   element={<AdminFlaggedPage />} />
       </Route>
 
-      {/* ── Placeholder routes for other team members ───────────────────────── */}
+      {/*  Placeholder routes for other team members  */}
       {/* Member 3: Projects & Tasks */}
       <Route path="/my-projects"   element={<RequireAuth roles={['student']}><AppLayout><MyProjectsPage /></AppLayout></RequireAuth>} />
       <Route path="/projects/:id"  element={<RequireAuth roles={['student', 'instructor', 'employer']}><AppLayout><ProjectDetailsPage /></AppLayout></RequireAuth>} />
@@ -157,11 +160,11 @@ function AppRoutes() {
       {/* Member 4: Browse & Discovery */}
       <Route path="/browse/projects"   element={<RequireAuth><AppLayout><BrowseProjectsPage /></AppLayout></RequireAuth>} />
       <Route path="/browse/portfolios" element={<RequireAuth><AppLayout><BrowsePortfoliosPage /></AppLayout></RequireAuth>} />
-      <Route path="/portfolios/:id"    element={<RequireAuth><AppLayout><Placeholder title="Portfolio" /></AppLayout></RequireAuth>} />
+      <Route path="/portfolios/:id"    element={<RequireAuth><AppLayout><PortfolioDetailsPage /></AppLayout></RequireAuth>} />
 
       {/* Member 5: Internships & Messaging */}
-      <Route path="/internships"   element={<RequireAuth><AppLayout><Placeholder title="Internships" /></AppLayout></RequireAuth>} />
-      <Route path="/my-internships" element={<RequireAuth><AppLayout><Placeholder title="My Internships" /></AppLayout></RequireAuth>} />
+      <Route path="/internships"   element={<RequireAuth roles={['student', 'instructor', 'employer']}><AppLayout><BrowseInternshipsPage /></AppLayout></RequireAuth>} />
+      <Route path="/my-internships" element={<RequireAuth roles={['employer']}><AppLayout><MyInternshipsPage /></AppLayout></RequireAuth>} />
       <Route path="/messages"      element={<RequireAuth roles={['student', 'instructor', 'employer']}><AppLayout><MessagesPage /></AppLayout></RequireAuth>} />
 
       {/* Favorites */}

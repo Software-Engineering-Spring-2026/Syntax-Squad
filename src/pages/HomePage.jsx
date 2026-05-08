@@ -156,6 +156,21 @@ export default function HomePage() {
   }
 
   const cards = ROLE_CARDS[currentUser.role] ?? []
+  const projects = store.getProjects()
+  const recommended = projects
+    .filter(p => p.visibility !== 'private' && p.isActive && !p.isFlagged)
+    .filter(p => currentUser.role !== 'student' || p.ownerId !== currentUser.id)
+    .slice(0, 4)
+
+  const getOwnerName = (ownerId) => {
+    const owner = store.getUserById(ownerId, 'student')
+    return owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown'
+  }
+
+  const getCourseCode = (courseId) => {
+    const course = store.getCourses().find(c => c.id === courseId)
+    return course ? course.code : '—'
+  }
 
   return (
     <div className="page-container">
@@ -176,6 +191,30 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {currentUser.role !== 'admin' && (
+        <section className="home-grid-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <h2 className="section-title" style={{ marginBottom: 0 }}>Recommended projects</h2>
+            <Link to="/browse/projects" className="text-link">View all</Link>
+          </div>
+          {recommended.length === 0 ? (
+            <p className="muted-text" style={{ marginTop: 12 }}>No recommendations yet.</p>
+          ) : (
+            <div className="home-card-grid" style={{ marginTop: 14 }}>
+              {recommended.map(p => (
+                <Link key={p.id} to={`/projects/${p.id}`} className="home-nav-card">
+                  <span className="home-nav-icon" aria-hidden="true">✨</span>
+                  <div>
+                    <div className="home-nav-title">{p.title}</div>
+                    <div className="home-nav-desc">{getCourseCode(p.courseId)} · {getOwnerName(p.ownerId)}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {currentUser.role === 'employer' && currentUser.status === 'pending' && (
         <div className="alert alert-warning" style={{ marginTop: 24 }}>

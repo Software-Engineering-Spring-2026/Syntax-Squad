@@ -82,7 +82,7 @@ function ProjectModal({ project, onClose, onAction, onFlag }) {
                 onChange={(e) => { setFlagReason(e.target.value); setFlagError('') }}
               />
               {flagError && <span className="field-error" role="alert">{flagError}</span>}
-              {!project.appeal && <span className="field-hint">Flagging will automatically deactivate this project because no appeal was sent.</span>}
+              <span className="field-hint">Flagging will automatically deactivate this project.</span>
             </div>
           )}
         </div>
@@ -118,6 +118,14 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState(() => store.getProjects())
   const [selected, setSelected] = useState(null)
   const [toast, setToast] = useState('')
+  const [search, setSearch] = useState('')
+  const [courseFilter, setCourseFilter] = useState('')
+  const [instructorFilter, setInstructorFilter] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+
+  const courses = store.getCourses()
+  const instructors = store.getAllUsers().filter(u => u.role === 'instructor')
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
   const refresh = () => setProjects(store.getProjects())
@@ -156,6 +164,29 @@ export default function AdminProjectsPage() {
     return c ? c.code : '—'
   }
 
+  const filtered = (() => {
+    const q = search.trim().toLowerCase()
+    const from = dateFrom ? new Date(dateFrom) : null
+    const to = dateTo ? new Date(dateTo) : null
+
+    return projects.filter(p => {
+      if (q && !p.title.toLowerCase().includes(q)) return false
+      if (courseFilter && p.courseId !== courseFilter) return false
+      if (instructorFilter) {
+        const inst = instructors.find(i => i.id === instructorFilter)
+        const linked = inst?.linkedCourses ?? []
+        if (!linked.includes(p.courseId)) return false
+      }
+      if (from && new Date(p.createdAt) < from) return false
+      if (to) {
+        const end = new Date(to)
+        end.setHours(23, 59, 59, 999)
+        if (new Date(p.createdAt) > end) return false
+      }
+      return true
+    })
+  })()
+
   return (
     <div>
       <div className="admin-page-header">
@@ -166,6 +197,53 @@ export default function AdminProjectsPage() {
       </div>
 
       {toast && <div className="toast toast-success">{toast}</div>}
+
+      <div className="search-bar-wrap" style={{ marginBottom: 20 }}>
+        <div className="search-bar">
+          <span className="search-icon" aria-hidden="true">🔍</span>
+          <input
+            type="text"
+            placeholder="Search by project title..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="search-input"
+          />
+          {search && (
+            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear">×</button>
+          )}
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="detail-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+          <div className="form-field">
+            <label className="field-label">Course</label>
+            <select className="field-input" value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)}>
+              <option value="">All courses</option>
+              {courses.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.code})</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label className="field-label">Course instructor</label>
+            <select className="field-input" value={instructorFilter} onChange={(e) => setInstructorFilter(e.target.value)}>
+              <option value="">All instructors</option>
+              {instructors.map(i => (
+                <option key={i.id} value={i.id}>{i.firstName} {i.lastName}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label className="field-label">From</label>
+            <input type="date" className="field-input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label className="field-label">To</label>
+            <input type="date" className="field-input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          </div>
+        </div>
+      </div>
 
       <div className="table-wrap">
         <table className="data-table">
@@ -181,10 +259,10 @@ export default function AdminProjectsPage() {
             </tr>
           </thead>
           <tbody>
-            {projects.length === 0 && (
+            {filtered.length === 0 && (
               <tr><td colSpan={7} className="table-empty">No projects to display.</td></tr>
             )}
-            {projects.map((p) => (
+            {filtered.map((p) => (
               <tr key={p.id} className={!p.isActive ? 'table-row-muted' : ''}>
                 <td className="table-name">{p.title}</td>
                 <td className="muted-text">{getOwnerName(p.ownerId)}</td>

@@ -24,6 +24,7 @@ function RecentNotifs({ adminId }) {
     employer_registration: '🏢',
     link_request:          '🔗',
     project_flagged:       '🚩',
+    project_appeal:        '💬',
     general:               '🔔',
   }
 

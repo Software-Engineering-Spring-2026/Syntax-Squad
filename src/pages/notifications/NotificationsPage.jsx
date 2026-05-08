@@ -5,19 +5,22 @@ import store from '../../data/DummyDataStore'
 
 const TYPE_ICONS = {
   employer_registration: '🏢',
-  link_request:          '🔗',
-  link_resolved:         '✅',
-  project_flagged:       '🚩',
-  registration_status:   '📋',
-  general:               '🔔',
+  link_request: '🔗',
+  link_resolved: '✅',
+  project_flagged: '🚩',
+  project_appeal: '💬',
+  private_message: '✉️',
+  project_invite: '📨',
+  registration_status: '📋',
+  general: '🔔',
 }
 
 function timeAgo(iso) {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000
-  if (diff < 60)         return 'Just now'
-  if (diff < 3600)       return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400)      return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 604800)     return `${Math.floor(diff / 86400)}d ago`
+  if (diff < 60) return 'Just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
@@ -27,16 +30,10 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState(
     () => store.getNotifications(currentUser.id)
   )
-  const [filter, setFilter] = useState('all') // 'all' | 'unread'
+  const [filter, setFilter] = useState('all')
 
   const notifEnabled = currentUser.notificationsEnabled !== false
-
   const refresh = () => setNotifications(store.getNotifications(currentUser.id))
-
-  const handleToggleRead = (id, isRead) => {
-    store.markNotificationRead(id, !isRead)
-    refresh()
-  }
 
   const handleMarkAllRead = () => {
     store.markAllRead(currentUser.id)
@@ -48,15 +45,40 @@ export default function NotificationsPage() {
     refreshUser()
   }
 
+  const handleNotificationClick = (notification) => {
+    if (!notification.isRead) {
+      store.markNotificationRead(notification.id, true)
+      refresh()
+    }
+
+    if (notification.type === 'project_flagged' && notification.projectId && currentUser.role === 'student') {
+      navigate(`/projects/${notification.projectId}`)
+    }
+
+    if (notification.type === 'project_appeal' && notification.projectId && currentUser.role === 'admin') {
+      navigate(`/admin/appeals?projectId=${notification.projectId}`)
+    }
+
+    if (notification.type === 'private_message' && notification.senderId) {
+      navigate(`/messages?userId=${notification.senderId}`)
+    }
+  }
+
+  const handleInviteResponse = (notification, accepted) => {
+    if (!notification.inviteId) return
+    store.resolveProjectInvite(notification.inviteId, accepted)
+    store.markNotificationRead(notification.id, true)
+    refresh()
+  }
+
   const displayed = filter === 'unread'
-    ? notifications.filter(n => !n.isRead)
+    ? notifications.filter((n) => !n.isRead)
     : notifications
 
-  const unreadCount = notifications.filter(n => !n.isRead).length
+  const unreadCount = notifications.filter((n) => !n.isRead).length
 
   return (
     <div className="page-container" style={{ maxWidth: 720 }}>
-      {/* Header */}
       <div className="page-header" style={{ flexWrap: 'wrap', gap: 12 }}>
         <div>
           {currentUser.role === 'admin' && (
@@ -99,7 +121,6 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {/* Disabled banner */}
       {!notifEnabled && (
         <div className="alert alert-warning" style={{ marginBottom: 16 }}>
           <span aria-hidden="true">🔕</span>&nbsp;
@@ -107,7 +128,6 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      {/* Filter tabs */}
       <div className="filter-tabs" role="tablist">
         <button
           role="tab"
@@ -127,23 +147,22 @@ export default function NotificationsPage() {
         </button>
       </div>
 
-      {/* List */}
       <div className="notif-list" role="list">
         {displayed.length === 0 ? (
           <div className="empty-state">
             <p>{filter === 'unread' ? 'No unread notifications.' : 'No notifications yet.'}</p>
           </div>
         ) : (
-          displayed.map(n => (
+          displayed.map((n) => (
             <div
               key={n.id}
               role="listitem"
               className={`notif-item ${!n.isRead ? 'notif-item-unread' : ''}`}
-              onClick={() => handleToggleRead(n.id, n.isRead)}
+              onClick={() => handleNotificationClick(n)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
-                  handleToggleRead(n.id, n.isRead)
+                  handleNotificationClick(n)
                 }
               }}
               tabIndex={0}
@@ -155,6 +174,22 @@ export default function NotificationsPage() {
               <div className="notif-body">
                 <p className="notif-message">{n.message}</p>
                 <span className="notif-time muted-text">{timeAgo(n.createdAt)}</span>
+                {n.type === 'project_invite' && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={(e) => { e.stopPropagation(); handleInviteResponse(n, true) }}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline"
+                      onClick={(e) => { e.stopPropagation(); handleInviteResponse(n, false) }}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))

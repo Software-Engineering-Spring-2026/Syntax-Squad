@@ -17,6 +17,12 @@ import InstructorSearchPage       from './pages/profile/InstructorSearchPage'
 import InstructorProfileViewPage  from './pages/profile/InstructorProfileViewPage'
 import CoursesListPage            from './pages/courses/CoursesListPage'
 import BrowseProjectsPage         from './pages/projects/BrowseProjectsPage'
+import MyProjectsPage             from './pages/projects/MyProjectsPage'
+import ProjectDetailsPage         from './pages/projects/ProjectDetailsPage'
+import MessagesPage               from './pages/messages/MessagesPage'
+import BrowsePortfoliosPage       from './pages/portfolios/BrowsePortfoliosPage'
+import FavoritesPage              from './pages/favorites/FavoritesPage'
+import InvitationsPage            from './pages/invitations/InvitationsPage'
 
 // Notification page
 import NotificationsPage from './pages/notifications/NotificationsPage'
@@ -30,6 +36,7 @@ import AdminCoursesPage  from './pages/admin/AdminCoursesPage'
 import AdminLinkRequestsPage from './pages/admin/AdminLinkRequestsPage'
 import AdminFlaggedPage  from './pages/admin/AdminFlaggedPage'
 import AdminProjectsPage from './pages/admin/AdminProjectsPage'
+import AdminAppealsPage  from './pages/admin/AdminAppealsPage'
 
 import './App.css'
 
@@ -136,24 +143,29 @@ function AppRoutes() {
         <Route path="users"     element={<AdminUsersPage />} />
         <Route path="courses"   element={<AdminCoursesPage />} />
         <Route path="projects"  element={<AdminProjectsPage />} />
+        <Route path="appeals"   element={<AdminAppealsPage />} />
         <Route path="link-requests" element={<AdminLinkRequestsPage />} />
         <Route path="flagged"   element={<AdminFlaggedPage />} />
       </Route>
 
       {/* ── Placeholder routes for other team members ───────────────────────── */}
       {/* Member 3: Projects & Tasks */}
-      <Route path="/my-projects"   element={<RequireAuth><AppLayout><Placeholder title="My Projects" /></AppLayout></RequireAuth>} />
-      <Route path="/projects/:id"  element={<RequireAuth><AppLayout><Placeholder title="Project Details" /></AppLayout></RequireAuth>} />
+      <Route path="/my-projects"   element={<RequireAuth roles={['student']}><AppLayout><MyProjectsPage /></AppLayout></RequireAuth>} />
+      <Route path="/projects/:id"  element={<RequireAuth roles={['student', 'instructor', 'employer']}><AppLayout><ProjectDetailsPage /></AppLayout></RequireAuth>} />
+      <Route path="/invitations"  element={<RequireAuth roles={['student', 'instructor']}><AppLayout><InvitationsPage /></AppLayout></RequireAuth>} />
 
       {/* Member 4: Browse & Discovery */}
       <Route path="/browse/projects"   element={<RequireAuth><AppLayout><BrowseProjectsPage /></AppLayout></RequireAuth>} />
-      <Route path="/browse/portfolios" element={<RequireAuth><AppLayout><Placeholder title="Browse Portfolios" /></AppLayout></RequireAuth>} />
+      <Route path="/browse/portfolios" element={<RequireAuth><AppLayout><BrowsePortfoliosPage /></AppLayout></RequireAuth>} />
       <Route path="/portfolios/:id"    element={<RequireAuth><AppLayout><Placeholder title="Portfolio" /></AppLayout></RequireAuth>} />
 
       {/* Member 5: Internships & Messaging */}
       <Route path="/internships"   element={<RequireAuth><AppLayout><Placeholder title="Internships" /></AppLayout></RequireAuth>} />
       <Route path="/my-internships" element={<RequireAuth><AppLayout><Placeholder title="My Internships" /></AppLayout></RequireAuth>} />
-      <Route path="/messages"      element={<RequireAuth><AppLayout><Placeholder title="Messages" /></AppLayout></RequireAuth>} />
+      <Route path="/messages"      element={<RequireAuth roles={['student', 'instructor', 'employer']}><AppLayout><MessagesPage /></AppLayout></RequireAuth>} />
+
+      {/* Favorites */}
+      <Route path="/favourites"    element={<RequireAuth roles={['student', 'employer']}><AppLayout><FavoritesPage /></AppLayout></RequireAuth>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to={currentUser ? '/' : '/login'} replace />} />

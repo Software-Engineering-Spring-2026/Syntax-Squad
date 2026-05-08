@@ -9,6 +9,8 @@ const NAV_LINKS = {
     { to: '/',                  label: 'Home'       },
     { to: '/my-projects',       label: 'Projects'   },
     { to: '/browse/projects',   label: 'Browse'     },
+    { to: '/favourites',        label: 'Favourites' },
+    { to: '/invitations',       label: 'Invitations'},
     { to: '/internships',       label: 'Internships'},
     { to: '/messages',          label: 'Messages'   },
     { to: '/instructors',       label: 'Instructors'},
@@ -18,12 +20,15 @@ const NAV_LINKS = {
     { to: '/courses',           label: 'Courses'         },
     { to: '/browse/projects',   label: 'Browse Projects' },
     { to: '/browse/portfolios', label: 'Portfolios'      },
+    { to: '/invitations',       label: 'Invitations'     },
     { to: '/instructors',       label: 'Instructors'     },
+    { to: '/messages',          label: 'Messages'        },
   ],
   employer: [
     { to: '/',                  label: 'Home'       },
     { to: '/browse/projects',   label: 'Browse'     },
     { to: '/browse/portfolios', label: 'Portfolios' },
+    { to: '/favourites',        label: 'Favourites' },
     { to: '/instructors',       label: 'Instructors'},
     { to: '/my-internships',    label: 'Internships'},
     { to: '/messages',          label: 'Messages'   },
@@ -35,6 +40,14 @@ function BellIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function MessageIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M21 15a4 4 0 0 1-4 4H8l-4 3V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -54,11 +67,34 @@ export default function Navbar() {
   const [menuOpen,    setMenuOpen]    = useState(false)
   const [dropOpen,    setDropOpen]    = useState(false)
   const [unread,      setUnread]      = useState(0)
+  const [msgUnread,   setMsgUnread]   = useState(0)
+  const [msgToast,    setMsgToast]    = useState('')
   const dropRef = useRef(null)
+  const prevMsgUnread = useRef(null)
 
   useEffect(() => {
     if (!currentUser) return
     setUnread(store.getUnreadCount(currentUser.id))
+    const nextMsgUnread = store.getUnreadMessageCount(currentUser.id)
+    setMsgUnread(nextMsgUnread)
+
+    if (prevMsgUnread.current !== null && nextMsgUnread > prevMsgUnread.current) {
+      const latest = store.getLatestUnreadMessage(currentUser.id)
+      if (latest) {
+        const sender = store.getAllUsers().find(u => u.id === latest.senderId)
+        const senderName = sender?.role === 'employer'
+          ? sender.companyName
+          : sender?.role === 'admin'
+          ? sender.name
+          : sender
+          ? `${sender.firstName} ${sender.lastName}`
+          : 'Someone'
+        setMsgToast(`New message from ${senderName}.`)
+        setTimeout(() => setMsgToast(''), 3000)
+      }
+    }
+
+    prevMsgUnread.current = nextMsgUnread
   }, [currentUser, location.pathname])
 
   // Close dropdown on outside click
@@ -107,6 +143,11 @@ export default function Navbar() {
     navigate('/notifications', { state: { from: location } })
   }
 
+  const handleMessagesClick = () => {
+    setMenuOpen(false)
+    navigate('/messages')
+  }
+
   return (
     <nav className="navbar" aria-label="Main navigation">
       <div className="navbar-inner">
@@ -128,6 +169,21 @@ export default function Navbar() {
 
         {/* Right actions */}
         <div className="navbar-actions">
+          {/* Messages */}
+          <button
+            type="button"
+            className="notif-btn"
+            aria-label={`Messages${msgUnread > 0 ? `, ${msgUnread} unread` : ''}`}
+            onClick={handleMessagesClick}
+          >
+            <MessageIcon />
+            {msgUnread > 0 && (
+              <span className="notif-badge" aria-hidden="true">
+                {msgUnread > 99 ? '99+' : msgUnread}
+              </span>
+            )}
+          </button>
+
           {/* Notification bell */}
           <button
             type="button"
@@ -213,6 +269,8 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+
+      {msgToast && <div className="toast toast-success">{msgToast}</div>}
     </nav>
   )
 }

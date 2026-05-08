@@ -204,7 +204,40 @@ const defaultData = {
       message: 'Your project "AI-Powered Study Assistant" has been flagged for suspected plagiarism.',
       isRead: false,
       type: 'project_flagged',
+      projectId: 'project-1',
       createdAt: new Date(Date.now() - 3600000).toISOString(),
+    },
+  ],
+
+  favorites: [
+    { userId: 'student-1', projects: ['project-2'], portfolios: ['student-2'] },
+    { userId: 'employer-1', projects: ['project-1'], portfolios: ['student-1'] },
+  ],
+
+  messages: [
+    {
+      id: 'msg-1',
+      senderId: 'student-1',
+      receiverId: 'employer-1',
+      body: 'Hello! I am interested in your open project. Can we discuss details?',
+      createdAt: new Date(Date.now() - 7200000).toISOString(),
+      isRead: false,
+    },
+    {
+      id: 'msg-2',
+      senderId: 'employer-1',
+      receiverId: 'student-1',
+      body: 'Thanks for reaching out. Please share your portfolio and availability.',
+      createdAt: new Date(Date.now() - 6800000).toISOString(),
+      isRead: false,
+    },
+    {
+      id: 'msg-3',
+      senderId: 'instructor-1',
+      receiverId: 'student-1',
+      body: 'Please revise the project report summary before next week.',
+      createdAt: new Date(Date.now() - 5400000).toISOString(),
+      isRead: true,
     },
   ],
 
@@ -214,6 +247,11 @@ const defaultData = {
       title: 'AI-Powered Study Assistant',
       ownerId: 'student-1',
       courseId: 'course-1',
+      githubLink: 'https://github.com/example/ai-study-assistant',
+      reportSummary: 'Summary report for the AI study assistant project.',
+      languages: ['Python', 'React'],
+      collaborators: ['student-2'],
+      demoVideoUrl: 'https://example.com/demo/ai-study-assistant',
       isActive: false,
       isFlagged: true,
       flagReason: 'Suspected plagiarism from a public GitHub repository.',
@@ -227,6 +265,11 @@ const defaultData = {
       title: 'Campus Navigation App',
       ownerId: 'student-2',
       courseId: 'course-bachelor',
+      githubLink: 'https://github.com/example/campus-navigation',
+      reportSummary: 'Report describing the campus navigation app, its goals, and results.',
+      languages: ['Kotlin', 'Firebase'],
+      collaborators: [],
+      demoVideoUrl: 'https://example.com/demo/campus-navigation',
       isActive: true,
       isFlagged: false,
       flagReason: null,
@@ -240,6 +283,11 @@ const defaultData = {
       title: 'Smart Energy Monitor',
       ownerId: 'student-1',
       courseId: 'course-2',
+      githubLink: 'https://github.com/example/smart-energy-monitor',
+      reportSummary: 'Short report outlining the smart energy monitor system.',
+      languages: ['Node.js', 'React'],
+      collaborators: ['student-2', 'instructor-1'],
+      demoVideoUrl: 'https://example.com/demo/smart-energy-monitor',
       isActive: true,
       isFlagged: false,
       flagReason: null,
@@ -274,6 +322,8 @@ class DummyDataStore {
         courses:      Array.isArray(parsed.courses)      ? parsed.courses      : defaultData.courses,
         linkRequests: Array.isArray(parsed.linkRequests) ? parsed.linkRequests : defaultData.linkRequests,
         notifications:Array.isArray(parsed.notifications)? parsed.notifications: defaultData.notifications,
+        messages:     Array.isArray(parsed.messages)     ? parsed.messages     : defaultData.messages,
+        favorites:    Array.isArray(parsed.favorites)    ? parsed.favorites    : defaultData.favorites,
         projects:     Array.isArray(parsed.projects)     ? parsed.projects     : defaultData.projects,
         otps:         Array.isArray(parsed.otps)         ? parsed.otps         : [],
       })
@@ -285,6 +335,14 @@ class DummyDataStore {
   _persist(data = this.data) {
     this.data = data
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  }
+
+  _getUserDisplayName(userId) {
+    const user = this.getAllUsers().find(u => u.id === userId)
+    if (!user) return 'Unknown'
+    if (user.role === 'employer') return user.companyName
+    if (user.role === 'admin') return user.name
+    return `${user.firstName} ${user.lastName}`
   }
 
   _normalizeData(data) {
@@ -663,6 +721,79 @@ class DummyDataStore {
 
   getProjects() { return [...this.data.projects] }
 
+  getProjectsByOwner(ownerId) {
+    return this.data.projects.filter(p => p.ownerId === ownerId)
+  }
+
+  getProjectById(id) {
+    return this.data.projects.find(p => p.id === id) ?? null
+  }
+
+  createProject({ ownerId, title, courseId, githubLink, reportSummary, languages, collaborators, demoVideoUrl }) {
+    const trimmedTitle = title?.trim()
+    if (!trimmedTitle) return { ok: false, error: 'Project title is required.' }
+    if (!courseId) return { ok: false, error: 'Course is required.' }
+
+    const project = {
+      id: uid('project'),
+      title: trimmedTitle,
+      ownerId,
+      courseId,
+      githubLink: githubLink?.trim() || '',
+      reportSummary: reportSummary?.trim() || '',
+      languages: Array.isArray(languages) ? languages : [],
+      collaborators: Array.isArray(collaborators) ? collaborators : [],
+      demoVideoUrl: demoVideoUrl?.trim() || '',
+      isActive: true,
+      isFlagged: false,
+      flagReason: null,
+      flaggedBy: null,
+      appeal: null,
+      visibility: 'public',
+      createdAt: new Date().toISOString(),
+    }
+
+    this._persist({ ...this.data, projects: [project, ...this.data.projects] })
+    return { ok: true, project }
+  }
+
+  updateProject(id, ownerId, updates) {
+    const project = this.data.projects.find(p => p.id === id)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== ownerId) return { ok: false, error: 'You can only update your own project.' }
+
+    const nextTitle = updates.title?.trim()
+    if (updates.title !== undefined && !nextTitle) return { ok: false, error: 'Project title is required.' }
+    if (updates.courseId !== undefined && !updates.courseId) return { ok: false, error: 'Course is required.' }
+
+    const projects = this.data.projects.map(p =>
+      p.id === id
+        ? {
+            ...p,
+            ...updates,
+            title: updates.title !== undefined ? nextTitle : p.title,
+            githubLink: updates.githubLink !== undefined ? updates.githubLink.trim() : p.githubLink ?? '',
+            reportSummary: updates.reportSummary !== undefined ? updates.reportSummary.trim() : p.reportSummary ?? '',
+            demoVideoUrl: updates.demoVideoUrl !== undefined ? updates.demoVideoUrl.trim() : p.demoVideoUrl ?? '',
+            languages: updates.languages !== undefined ? updates.languages : p.languages ?? [],
+            collaborators: updates.collaborators !== undefined ? updates.collaborators : p.collaborators ?? [],
+          }
+        : p
+    )
+
+    this._persist({ ...this.data, projects })
+    return { ok: true }
+  }
+
+  deleteProject(id, ownerId) {
+    const project = this.data.projects.find(p => p.id === id)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== ownerId) return { ok: false, error: 'You can only delete your own project.' }
+    const projects = this.data.projects.filter(p => p.id !== id)
+    this._persist({ ...this.data, projects })
+    return { ok: true }
+  }
+
   getFlaggedProjects() {
     return this.data.projects.filter(p => p.isFlagged)
   }
@@ -679,7 +810,7 @@ class DummyDataStore {
     const project = this.data.projects.find(p => p.id === id)
     if (!project) return { ok: false, error: 'Project not found.' }
 
-    const shouldDeactivate = !project.appeal?.trim()
+    const shouldDeactivate = true
     const projects = this.data.projects.map(p =>
       p.id === id
         ? {
@@ -687,7 +818,7 @@ class DummyDataStore {
             isFlagged: true,
             flagReason: trimmedReason,
             flaggedBy,
-            isActive: shouldDeactivate ? false : p.isActive,
+            isActive: false,
           }
         : p
     )
@@ -695,10 +826,8 @@ class DummyDataStore {
 
     const owner = this.getUserById(project.ownerId, 'student')
     if (owner) {
-      const msg = shouldDeactivate
-        ? `Your project "${project.title}" was flagged and deactivated. Reason: ${trimmedReason}`
-        : `Your project "${project.title}" was flagged. Reason: ${trimmedReason}`
-      this.addNotification(project.ownerId, msg, 'project_flagged')
+      const msg = `Your project "${project.title}" was flagged and deactivated. Reason: ${trimmedReason}`
+      this.addNotification(project.ownerId, msg, 'project_flagged', { projectId: id })
     }
 
     return { ok: true, deactivated: shouldDeactivate }
@@ -709,6 +838,102 @@ class DummyDataStore {
       p.id === id ? { ...p, isFlagged: false, flagReason: null, isActive: true } : p
     )
     this._persist({ ...this.data, projects })
+    return { ok: true }
+  }
+
+  submitProjectAppeal(projectId, studentId, message) {
+    const project = this.data.projects.find(p => p.id === projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    if (project.ownerId !== studentId) return { ok: false, error: 'You can only appeal your own project.' }
+    if (!project.isFlagged) return { ok: false, error: 'Only flagged projects can be appealed.' }
+
+    const text = message?.trim()
+    if (!text) return { ok: false, error: 'Appeal message is required.' }
+    if (text.length > 280) return { ok: false, error: 'Appeal message must be 280 characters or fewer.' }
+
+    const projects = this.data.projects.map(p =>
+      p.id === projectId ? { ...p, appeal: text } : p
+    )
+    this._persist({ ...this.data, projects })
+
+    this.data.admins.forEach((admin) => {
+      this.addNotification(
+        admin.id,
+        `A student submitted an appeal for "${project.title}".`,
+        'project_appeal',
+        { projectId }
+      )
+    })
+    return { ok: true }
+  }
+
+  // ── Project invitations ───────────────────────────────────────────────────
+
+  getProjectInvitesForUser(userId) {
+    return this.data.projectInvites.filter(i => i.inviteeId === userId)
+  }
+
+  createProjectInvite(projectId, inviterId, inviteeId) {
+    const exists = this.data.projectInvites.some(i =>
+      i.projectId === projectId && i.inviteeId === inviteeId && i.status === 'pending'
+    )
+    if (exists) return { ok: false, error: 'Invite already sent.' }
+
+    const invite = {
+      id: uid('invite'),
+      projectId,
+      inviterId,
+      inviteeId,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    }
+
+    this._persist({ ...this.data, projectInvites: [...this.data.projectInvites, invite] })
+
+    const project = this.getProjectById(projectId)
+    if (project) {
+      const inviterName = this._getUserDisplayName(inviterId)
+      const msg = `${inviterName} invited you to collaborate on "${project.title}".`
+      this.addNotification(inviteeId, msg, 'project_invite', { inviteId: invite.id, projectId })
+    }
+
+    return { ok: true, invite }
+  }
+
+  sendProjectInvites(projectId, inviterId, inviteeIds = []) {
+    const unique = [...new Set(inviteeIds)].filter(id => id && id !== inviterId)
+    const results = unique.map(id => this.createProjectInvite(projectId, inviterId, id))
+    return { ok: true, results }
+  }
+
+  resolveProjectInvite(inviteId, accepted) {
+    const invite = this.data.projectInvites.find(i => i.id === inviteId)
+    if (!invite) return { ok: false, error: 'Invite not found.' }
+    if (invite.status !== 'pending') return { ok: false, error: 'Invite already resolved.' }
+
+    const project = this.getProjectById(invite.projectId)
+    let projects = [...this.data.projects]
+
+    if (accepted && project) {
+      projects = projects.map(p =>
+        p.id === invite.projectId
+          ? { ...p, collaborators: Array.from(new Set([...(p.collaborators ?? []), invite.inviteeId])) }
+          : p
+      )
+    }
+
+    const projectInvites = this.data.projectInvites.map(i =>
+      i.id === inviteId ? { ...i, status: accepted ? 'accepted' : 'rejected' } : i
+    )
+
+    const notifications = this.data.notifications.map(n =>
+      n.type === 'project_invite' && n.inviteId === inviteId
+        ? { ...n, isRead: true }
+        : n
+    )
+
+    this._persist({ ...this.data, projectInvites, projects, notifications })
+
     return { ok: true }
   }
 
@@ -744,7 +969,7 @@ class DummyDataStore {
     return this.data.notifications.filter(n => n.userId === userId && !n.isRead).length
   }
 
-  addNotification(userId, message, type = 'general') {
+  addNotification(userId, message, type = 'general', extra = {}) {
     const user = this.getAllUsers().find(u => u.id === userId)
     if (user && !this.getUserById(userId, user.role)?.notificationsEnabled) return null
 
@@ -754,6 +979,7 @@ class DummyDataStore {
       message,
       isRead: false,
       type,
+      ...extra,
       createdAt: new Date().toISOString(),
     }
     this._persist({ ...this.data, notifications: [notif, ...this.data.notifications] })
@@ -791,6 +1017,146 @@ class DummyDataStore {
       )
       this._persist({ ...this.data, students })
     }
+  }
+
+  // ── Favorites ──────────────────────────────────────────────────────────────
+
+  _getFavoritesEntry(userId) {
+    const list = Array.isArray(this.data.favorites) ? this.data.favorites : []
+    const existing = list.find(f => f.userId === userId)
+    if (existing) return existing
+    const created = { userId, projects: [], portfolios: [] }
+    this._persist({ ...this.data, favorites: [...list, created] })
+    return created
+  }
+
+  getFavorites(userId) {
+    const entry = this._getFavoritesEntry(userId)
+    return {
+      projects: [...(entry.projects ?? [])],
+      portfolios: [...(entry.portfolios ?? [])],
+    }
+  }
+
+  isFavoriteProject(userId, projectId) {
+    const entry = this._getFavoritesEntry(userId)
+    return (entry.projects ?? []).includes(projectId)
+  }
+
+  isFavoritePortfolio(userId, portfolioId) {
+    const entry = this._getFavoritesEntry(userId)
+    return (entry.portfolios ?? []).includes(portfolioId)
+  }
+
+  toggleFavoriteProject(userId, projectId) {
+    const entry = this._getFavoritesEntry(userId)
+    const has = (entry.projects ?? []).includes(projectId)
+    const projects = has
+      ? entry.projects.filter(id => id !== projectId)
+      : [...(entry.projects ?? []), projectId]
+
+    const favorites = this.data.favorites.map(f =>
+      f.userId === userId ? { ...f, projects } : f
+    )
+    this._persist({ ...this.data, favorites })
+    return { ok: true, isFavorite: !has }
+  }
+
+  toggleFavoritePortfolio(userId, portfolioId) {
+    const entry = this._getFavoritesEntry(userId)
+    const has = (entry.portfolios ?? []).includes(portfolioId)
+    const portfolios = has
+      ? entry.portfolios.filter(id => id !== portfolioId)
+      : [...(entry.portfolios ?? []), portfolioId]
+
+    const favorites = this.data.favorites.map(f =>
+      f.userId === userId ? { ...f, portfolios } : f
+    )
+    this._persist({ ...this.data, favorites })
+    return { ok: true, isFavorite: !has }
+  }
+
+  // ── Messages ───────────────────────────────────────────────────────────────
+
+  getMessages() {
+    return [...this.data.messages]
+  }
+
+  getThreadMessages(userId, otherUserId) {
+    return this.data.messages
+      .filter(m =>
+        (m.senderId === userId && m.receiverId === otherUserId) ||
+        (m.senderId === otherUserId && m.receiverId === userId)
+      )
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+  }
+
+  getThreadsForUser(userId) {
+    const related = this.data.messages.filter(m => m.senderId === userId || m.receiverId === userId)
+    const map = new Map()
+
+    related.forEach((m) => {
+      const otherId = m.senderId === userId ? m.receiverId : m.senderId
+      const prev = map.get(otherId)
+      if (!prev || new Date(m.createdAt) > new Date(prev.lastMessage.createdAt)) {
+        map.set(otherId, { userId: otherId, lastMessage: m })
+      }
+    })
+
+    const threads = Array.from(map.values()).map(t => {
+      const unreadCount = this.data.messages.filter(m =>
+        m.receiverId === userId && m.senderId === t.userId && !m.isRead
+      ).length
+      return { ...t, unreadCount }
+    })
+
+    return threads.sort((a, b) => new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt))
+  }
+
+  getUnreadMessageCount(userId) {
+    return this.data.messages.filter(m => m.receiverId === userId && !m.isRead).length
+  }
+
+  getLatestUnreadMessage(userId) {
+    const unread = this.data.messages
+      .filter(m => m.receiverId === userId && !m.isRead)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    return unread[0] ?? null
+  }
+
+  markThreadRead(userId, otherUserId) {
+    const messages = this.data.messages.map(m =>
+      m.receiverId === userId && m.senderId === otherUserId
+        ? { ...m, isRead: true }
+        : m
+    )
+    this._persist({ ...this.data, messages })
+  }
+
+  sendMessage({ senderId, receiverId, body }) {
+    const text = body?.trim()
+    if (!text) return { ok: false, error: 'Message is required.' }
+
+    const message = {
+      id: uid('msg'),
+      senderId,
+      receiverId,
+      body: text,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+    }
+
+    this._persist({ ...this.data, messages: [...this.data.messages, message] })
+
+    const senderName = this._getUserDisplayName(senderId)
+    this.addNotification(
+      receiverId,
+      `New message from ${senderName}.`,
+      'private_message',
+      { senderId }
+    )
+
+    return { ok: true, message }
   }
 
   // ── Instructor search ────────────────────────────────────────────────────────

@@ -208,7 +208,7 @@ export default function MyInternshipsPage() {
   const [showForm, setShowForm] = useState(false)
   const [filter, setFilter] = useState('active')
   const [toast, setToast] = useState('')
-
+  const [applicantSort, setApplicantSort] = useState('date')
   const stats = store.getInternshipStats(currentUser.id)
 
   const refresh = () => setInternships(store.getEmployerInternships(currentUser.id))
@@ -417,43 +417,94 @@ export default function MyInternshipsPage() {
         </div>
 
         <h2 className="section-title" style={{ marginBottom: 12 }}>Applicants</h2>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Internship</th>
-                <th>Cover letter</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {internships.flatMap(i => store.getInternshipApplications(i.id)).length === 0 && (
-                <tr><td colSpan={5} className="table-empty">No applicants yet.</td></tr>
+
+{/* Sort toggle */}
+<div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+  <span className="muted-text" style={{ fontSize: 13 }}>Sort by:</span>
+  <button
+    className={`btn btn-sm ${applicantSort === 'date' ? 'btn-primary' : 'btn-outline'}`}
+    onClick={() => setApplicantSort('date')}
+  >
+    Date applied
+  </button>
+  <button
+    className={`btn btn-sm ${applicantSort === 'score' ? 'btn-primary' : 'btn-outline'}`}
+    onClick={() => setApplicantSort('score')}
+  >
+    Top contributors
+  </button>
+</div>
+
+<div className="table-wrap">
+  <table className="data-table">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Internship</th>
+        <th>Cover letter</th>
+        <th>Status</th>
+        {applicantSort === 'score' && <th>Score</th>}
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {(() => {
+        const allApps = internships.flatMap(i => store.getInternshipApplications(i.id))
+
+        const scored = allApps.map(app => {
+          const allProjects = store.getProjects()
+          const studentProjects = allProjects.filter(p =>
+            p.ownerId === app.studentId ||
+            (p.collaborators ?? []).includes(app.studentId)
+          )
+          const allTasks = studentProjects.flatMap(p => store.getProjectTasks(p.id))
+          const assignedTasks = allTasks.filter(t => t.assignedTo === app.studentId)
+          const completedCount = assignedTasks.filter(t => t.status === 'completed').length
+          const taskCount = assignedTasks.length
+          const score = completedCount * 2 + taskCount
+          return { app, score }
+        })
+
+        const sorted = applicantSort === 'score'
+          ? [...scored].sort((a, b) => b.score - a.score)
+          : scored
+
+        if (sorted.length === 0) {
+          return (
+            <tr>
+              <td colSpan={applicantSort === 'score' ? 6 : 5} className="table-empty">
+                No applicants yet.
+              </td>
+            </tr>
+          )
+        }
+
+        return sorted.map(({ app, score }) => {
+          const internship = store.getInternshipById(app.internshipId)
+          return (
+            <tr key={app.id}>
+              <td className="table-name">{getStudentName(app.studentId)}</td>
+              <td className="muted-text">{internship?.title ?? 'Deleted internship'}</td>
+              <td className="muted-text" style={{ maxWidth: 320 }}>{app.coverLetter}</td>
+              <td><StatusBadge status={app.status} /></td>
+              {applicantSort === 'score' && (
+                <td className="mono" style={{ fontWeight: 600, color: '#4f8abf' }}>{score}</td>
               )}
-              {internships.flatMap(i => store.getInternshipApplications(i.id)).map(app => {
-                const internship = store.getInternshipById(app.internshipId)
-                return (
-                  <tr key={app.id}>
-                    <td className="table-name">{getStudentName(app.studentId)}</td>
-                    <td className="muted-text">{internship?.title ?? 'Deleted internship'}</td>
-                    <td className="muted-text" style={{ maxWidth: 320 }}>{app.coverLetter}</td>
-                    <td><StatusBadge status={app.status} /></td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <button className="btn btn-outline btn-sm" disabled={app.status === 'nominated'} onClick={() => handleStatus(app.id, 'nominated')}>Nominate</button>
-                        <button className="btn btn-primary btn-sm" disabled={app.status === 'accepted'} onClick={() => handleStatus(app.id, 'accepted')}>Accept</button>
-                        <button className="btn btn-outline btn-sm" disabled={app.status === 'rejected'} onClick={() => handleStatus(app.id, 'rejected')}>Reject</button>
-                        <button className="btn btn-outline btn-sm" disabled={app.status === 'completed'} onClick={() => handleStatus(app.id, 'completed')}>Complete</button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+              <td>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button className="btn btn-outline btn-sm" disabled={app.status === 'nominated'} onClick={() => handleStatus(app.id, 'nominated')}>Nominate</button>
+                  <button className="btn btn-primary btn-sm" disabled={app.status === 'accepted'} onClick={() => handleStatus(app.id, 'accepted')}>Accept</button>
+                  <button className="btn btn-outline btn-sm" disabled={app.status === 'rejected'} onClick={() => handleStatus(app.id, 'rejected')}>Reject</button>
+                  <button className="btn btn-outline btn-sm" disabled={app.status === 'completed'} onClick={() => handleStatus(app.id, 'completed')}>Complete</button>
+                </div>
+              </td>
+            </tr>
+          )
+        })
+      })()}
+    </tbody>
+  </table>
+</div>
       </section>
 
       {showForm && (

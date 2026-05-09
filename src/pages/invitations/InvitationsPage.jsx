@@ -4,18 +4,20 @@ import store from '../../data/DummyDataStore'
 
 export default function InvitationsPage() {
   const { currentUser } = useAuth()
-  const [invites, setInvites] = useState(() => currentUser ? store.getProjectInvitesForUser(currentUser.id) : [])
-  const [toast, setToast] = useState('')
+  const [invites, setInvites] = useState(() =>
+    currentUser ? [...store.getProjectInvitesForUser(currentUser.id)] : []
+  )
+    const [toast, setToast] = useState('')
 
   const refresh = () => {
     if (!currentUser) return
-    setInvites(store.getProjectInvitesForUser(currentUser.id))
+    setInvites([...store.getProjectInvitesForUser(currentUser.id)])
   }
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
   useEffect(() => {
     if (!currentUser) return
-    setInvites(store.getProjectInvitesForUser(currentUser.id))
+    setInvites([...store.getProjectInvitesForUser(currentUser.id)])
   }, [currentUser])
 
   const rows = invites.map(invite => {

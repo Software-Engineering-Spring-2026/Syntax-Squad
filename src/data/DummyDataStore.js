@@ -1377,33 +1377,52 @@ class DummyDataStore {
     return { ok: true, comment }
   }
 
+  updateProjectComment(commentId, instructorId, body) {
+    const comment = this.data.projectComments.find(c => c.id === commentId)
+    if (!comment) return { ok: false, error: 'Comment not found.' }
+    if (comment.authorId !== instructorId) return { ok: false, error: 'You can only edit your own comments.' }
+    const text = body?.trim()
+    if (!text) return { ok: false, error: 'Comment cannot be empty.' }
+    const projectComments = this.data.projectComments.map(c =>
+      c.id === commentId ? { ...c, body: text, updatedAt: new Date().toISOString() } : c
+    )
+    this._persist({ ...this.data, projectComments })
+    return { ok: true }
+  }
+  
+  deleteProjectComment(commentId, instructorId) {
+    const comment = this.data.projectComments.find(c => c.id === commentId)
+    if (!comment) return { ok: false, error: 'Comment not found.' }
+    if (comment.authorId !== instructorId) return { ok: false, error: 'You can only delete your own comments.' }
+    const projectComments = this.data.projectComments.filter(c => c.id !== commentId)
+    this._persist({ ...this.data, projectComments })
+    return { ok: true }
+  }  
+
   getProjectFeedback(projectId) {
     return this.data.projectFeedback
       .filter(f => f.projectId === projectId)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }
 
-  addProjectFeedback(projectId, instructorId, body, rating) {
+  addProjectFeedback(projectId, instructorId, body) {
     const project = this.getProjectById(projectId)
     if (!project) return { ok: false, error: 'Project not found.' }
     const instructor = this.getUserById(instructorId, 'instructor')
     if (!instructor) return { ok: false, error: 'Only instructors can add feedback.' }
     const text = body?.trim()
     if (!text) return { ok: false, error: 'Feedback is required.' }
-    const score = Number(rating)
-    if (!Number.isInteger(score) || score < 1 || score > 5) {
-      return { ok: false, error: 'Rating must be from 1 to 5.' }
-    }
+  
     const feedback = {
       id: uid('feedback'),
       projectId,
       instructorId,
       body: text,
-      rating: score,
+      isRating: false,
       createdAt: new Date().toISOString(),
     }
     this._persist({ ...this.data, projectFeedback: [feedback, ...this.data.projectFeedback] })
-
+  
     const recipients = Array.from(new Set([project.ownerId, ...(project.collaborators ?? [])]))
     recipients.forEach((userId) => {
       this.addNotification(
@@ -1417,10 +1436,44 @@ class DummyDataStore {
   }
 
   getProjectRating(projectId) {
-    const feedback = this.getProjectFeedback(projectId).filter(f => Number(f.rating) > 0)
+    const feedback = this.getProjectFeedback(projectId).filter(f => f.isRating && Number(f.rating) > 0)
     if (feedback.length === 0) return { average: 0, count: 0 }
     const total = feedback.reduce((sum, item) => sum + Number(item.rating), 0)
     return { average: Math.round((total / feedback.length) * 10) / 10, count: feedback.length }
+  }
+  setProjectRating(projectId, instructorId, rating) {
+    const project = this.getProjectById(projectId)
+    if (!project) return { ok: false, error: 'Project not found.' }
+    const instructor = this.getUserById(instructorId, 'instructor')
+    if (!instructor) return { ok: false, error: 'Only instructors can rate projects.' }
+    const score = Number(rating)
+    if (!Number.isInteger(score) || score < 1 || score > 5)
+      return { ok: false, error: 'Rating must be from 1 to 5.' }
+  
+    const existing = this.data.projectFeedback.find(
+      f => f.projectId === projectId && f.instructorId === instructorId && f.isRating
+    )
+  
+    let projectFeedback
+    if (existing) {
+      projectFeedback = this.data.projectFeedback.map(f =>
+        f.id === existing.id ? { ...f, rating: score, updatedAt: new Date().toISOString() } : f
+      )
+    } else {
+      const entry = {
+        id: uid('rating'),
+        projectId,
+        instructorId,
+        body: '',
+        rating: score,
+        isRating: true,
+        createdAt: new Date().toISOString(),
+      }
+      projectFeedback = [entry, ...this.data.projectFeedback]
+    }
+  
+    this._persist({ ...this.data, projectFeedback })
+    return { ok: true }
   }
 
   getTaskComments(projectId) {

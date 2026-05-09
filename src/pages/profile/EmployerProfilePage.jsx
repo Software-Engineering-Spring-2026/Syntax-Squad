@@ -181,6 +181,8 @@ export default function EmployerProfilePage() {
   const [error,  setError]  = useState('')
   const [saving, setSaving] = useState(false)
   const [dirty,  setDirty]  = useState(false)
+  const [previewMap, setPreviewMap] = useState(false)
+  const stats = store.getInternshipStats(currentUser.id)
 
   const set = (key, val) => { setForm(f => ({ ...f, [key]: val })); setDirty(true); setSaved(false) }
 
@@ -303,17 +305,46 @@ export default function EmployerProfilePage() {
             </div>
 
             <div className="form-field">
-              <label htmlFor="ep-location" className="field-label">Map location</label>
-              <input
-                id="ep-location"
-                type="text"
-                className="field-input"
-                placeholder="Google Maps link or coordinates"
-                value={form.location}
-                onChange={e => set('location', e.target.value)}
-              />
-              <span className="field-hint">Save a precise map link or coordinates for your company location.</span>
-            </div>
+  <label htmlFor="ep-location" className="field-label">Map location</label>
+  <div style={{ display: 'flex', gap: 8 }}>
+    <input
+      id="ep-location"
+      type="text"
+      className="field-input"
+      placeholder="Address or coordinates"
+      value={form.location}
+      onChange={e => { set('location', e.target.value); setPreviewMap(false) }}
+      style={{ flex: 1 }}
+    />
+    <button
+      type="button"
+      className="btn btn-outline"
+      onClick={() => setPreviewMap(v => !v)}
+      disabled={!form.location.trim() && !form.address.trim()}
+    >
+      {previewMap ? 'Hide map' : 'Show on map'}
+    </button>
+  </div>
+  {previewMap && (form.location.trim() || form.address.trim()) && (
+    <div style={{ marginTop: 10 }}>
+      <iframe
+        width="100%"
+        height="280"
+        style={{ border: 0, borderRadius: 8 }}
+        src={`https://maps.google.com/maps?q=${encodeURIComponent(form.location.trim() || form.address.trim())}&output=embed`}
+        title="Company location preview"
+        loading="lazy"
+        allowFullScreen
+      />
+      <span className="field-hint">
+        This is a preview. Your saved location text is used to display your company on the map.
+      </span>
+    </div>
+  )}
+  {!previewMap && (
+    <span className="field-hint">Type an address or coordinates, then click "Show on map" to preview.</span>
+  )}
+</div>
 
             {error && <div className="alert alert-error" role="alert"><span aria-hidden="true"></span> {error}</div>}
             {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true"></span> Profile saved successfully.</div>}
@@ -337,11 +368,42 @@ export default function EmployerProfilePage() {
               )}
             </div>
           </form>
+            
+         {/* Stats (Req 71) */}
+<div className="card">
+  <h2 className="card-title">Internship statistics</h2>
+  <div className="stat-grid" style={{ marginTop: 12 }}>
+    <div className="stat-card stat-card-blue">
+      <div className="stat-card-body">
+        <div className="stat-card-value">{stats.totalInternships}</div>
+        <div className="stat-card-label">Internships offered</div>
+      </div>
+    </div>
+    <div className="stat-card stat-card-green">
+      <div className="stat-card-body">
+        <div className="stat-card-value">{stats.completedInternships}</div>
+        <div className="stat-card-label">Students completed internships</div>
+      </div>
+    </div>
+    <div className="stat-card stat-card-blue">
+      <div className="stat-card-body">
+        <div className="stat-card-value">{stats.totalApplications}</div>
+        <div className="stat-card-label">Total applications received</div>
+      </div>
+    </div>
+    <div className="stat-card stat-card-green">
+      <div className="stat-card-body">
+        <div className="stat-card-value">{stats.acceptedApplications}</div>
+        <div className="stat-card-label">Students accepted</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-          {/* Documents (Req 13) */}
-          <div className="card">
-            <DocumentsSection employerId={currentUser.id} documents={currentUser.documents} />
-          </div>
+{/* Documents (Req 13) */}
+<div className="card">
+  <DocumentsSection employerId={currentUser.id} documents={currentUser.documents} />
+</div>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ function StatCard({ label, value, sub, color, to }) {
         <div className="stat-card-label">{label}</div>
         {sub && <div className="stat-card-sub muted-text">{sub}</div>}
       </div>
+      {to && <span className="stat-card-arrow muted-text" aria-hidden="true">→</span>}
     </div>
   )
   return to ? <Link to={to} className="stat-card-link">{inner}</Link> : inner
@@ -50,12 +51,13 @@ export default function AdminDashboard() {
 
       {/* Stat grid */}
       <div className="stat-grid">
+      <StatCard label="Students"    value={stats.students}         color="blue"  to="/admin/users" />
+      <StatCard label="Internships" value={stats.totalInternships} color="green" sub={`${stats.totalApplications} applications`} to="/my-internships" />
+    
         <StatCard label="Total users"    value={stats.totalUsers}      color="blue"   to="/admin/users" />
-        <StatCard label="Students"        value={stats.students}        color="blue"   />
         <StatCard label="Instructors"     value={stats.instructors}     color="blue"   to="/instructors" />
         <StatCard label="Employers"       value={stats.employers}       color="blue"   to="/admin/employers" />
         <StatCard label="Projects"        value={stats.totalProjects}   color="green"  to="/admin/projects" />
-        <StatCard label="Internships"     value={stats.totalInternships} color="green"  sub={`${stats.totalApplications} applications`} />
         <StatCard label="Courses"         value={stats.totalCourses}    color="green"  to="/admin/courses" />
         <StatCard
           label="Pending employers"

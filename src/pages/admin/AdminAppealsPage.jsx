@@ -184,11 +184,11 @@ export default function AdminAppealsPage() {
                     {p.isActive ? 'Active' : 'Deactivated'}
                   </span>
                 </td>
-                <td>
-                  <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>
-                    Review
-                  </button>
-                </td>
+               <td style={{ opacity: 1 }}>
+  <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>
+    Review
+  </button>
+</td>
               </tr>
             ))}
           </tbody>

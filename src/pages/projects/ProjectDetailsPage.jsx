@@ -179,12 +179,16 @@ export default function ProjectDetailsPage() {
   const [feedbackBody, setFeedbackBody] = useState('')
   const [taskFeedback, setTaskFeedback] = useState({ taskId: '', body: '' })
   const [editingTaskComment, setEditingTaskComment] = useState(null)
-  const [rating, setRating] = useState(5)
+  const myExistingRating = feedback.find(
+    f => f.isRating && f.instructorId === currentUser.id
+  )
+  const [rating, setRating] = useState(myExistingRating?.rating ?? 5)
   const [appeal, setAppeal] = useState(project?.appeal ?? '')
   const [inviteQuery, setInviteQuery] = useState('')
   const [attempted, setAttempted] = useState(false)
   const [error, setError] = useState('')
   const [toast, setToast] = useState('')
+  const [appealSubmitted, setAppealSubmitted] = useState(!!project?.appeal)
 
   const backPath = location.state?.from || '/my-projects'
   const backLabel = location.state?.fromLabel || 'my projects'
@@ -235,7 +239,6 @@ export default function ProjectDetailsPage() {
     .filter(Boolean)
   const inviteCandidates = store.searchProjectInviteCandidates(project.id, inviteQuery)
   const visibleDrafts = (project.thesisDrafts ?? []).filter(draft => isOwner || isMember || isInstructor || draft.isFinal)
-
   const submitAppeal = (e) => {
     e.preventDefault()
     setAttempted(true)
@@ -246,6 +249,7 @@ export default function ProjectDetailsPage() {
       setError(result.error)
       return
     }
+    setAppealSubmitted(true)
     refreshProjectWork()
     showToast('Appeal sent successfully.')
   }
@@ -281,6 +285,20 @@ export default function ProjectDetailsPage() {
     }
     refreshProjectWork()
     showToast('Task deleted.')
+  }
+
+  const moveTask = (taskId, direction) => {
+    const sorted = [...tasks].sort((a, b) => Number(a.importance) - Number(b.importance))
+    const index = sorted.findIndex(t => t.id === taskId)
+    const swapIndex = direction === 'up' ? index - 1 : index + 1
+    if (swapIndex < 0 || swapIndex >= sorted.length) return
+  
+    const taskA = sorted[index]
+    const taskB = sorted[swapIndex]
+  
+    store.updateProjectTask(taskA.id, currentUser.id, { importance: Number(taskB.importance) })
+    store.updateProjectTask(taskB.id, currentUser.id, { importance: Number(taskA.importance) })
+    refreshProjectWork()
   }
 
   const sendInvite = (inviteeId) => {
@@ -344,28 +362,46 @@ export default function ProjectDetailsPage() {
     refreshProjectWork()
     showToast('Thesis draft removed.')
   }
+  const [editingComment, setEditingComment] = useState(null)
 
   const submitComment = (e) => {
     e.preventDefault()
-    const result = store.addProjectComment(project.id, currentUser.id, commentBody)
-    if (!result.ok) {
-      showToast(result.error)
-      return
+    if (editingComment) {
+      const result = store.updateProjectComment(editingComment.id, currentUser.id, commentBody)
+      if (!result.ok) { showToast(result.error); return }
+      setEditingComment(null)
+      setCommentBody('')
+      refreshProjectWork()
+      showToast('Comment updated.')
+    } else {
+      const result = store.addProjectComment(project.id, currentUser.id, commentBody)
+      if (!result.ok) { showToast(result.error); return }
+      setCommentBody('')
+      refreshProjectWork()
+      showToast('Comment added.')
     }
-    setCommentBody('')
+  }
+  
+  const deleteComment = (commentId) => {
+    const result = store.deleteProjectComment(commentId, currentUser.id)
+    if (!result.ok) { showToast(result.error); return }
     refreshProjectWork()
-    showToast('Comment added.')
+    showToast('Comment removed.')
   }
 
+  const submitRating = (e) => {
+    e.preventDefault()
+    const result = store.setProjectRating(project.id, currentUser.id, rating)
+    if (!result.ok) { showToast(result.error); return }
+    refreshProjectWork()
+    showToast('Rating saved.')
+  }
+  
   const submitFeedback = (e) => {
     e.preventDefault()
-    const result = store.addProjectFeedback(project.id, currentUser.id, feedbackBody, rating)
-    if (!result.ok) {
-      showToast(result.error)
-      return
-    }
+    const result = store.addProjectFeedback(project.id, currentUser.id, feedbackBody)
+    if (!result.ok) { showToast(result.error); return }
     setFeedbackBody('')
-    setRating(5)
     refreshProjectWork()
     showToast('Feedback sent.')
   }
@@ -469,20 +505,40 @@ export default function ProjectDetailsPage() {
           </div>
         )}
 
-        {project.isFlagged && isOwner && (
-          <form onSubmit={submitAppeal} noValidate style={{ marginTop: 20 }}>
-            <div className="form-field">
-              <label className="field-label">Appeal message <span className="required">*</span></label>
-              <textarea className={`field-textarea ${showAppealError ? 'field-input-error' : ''}`} rows={4} maxLength={280} value={appeal} onChange={(e) => setAppeal(e.target.value)} />
-              <span className="field-hint">{appeal.length}/280 characters</span>
-              {showAppealError && <span className="field-error">Appeal message is required.</span>}
-              {error && <span className="field-error">{error}</span>}
-            </div>
-            <div className="form-actions">
-              <button type="submit" className="btn btn-primary">Send appeal to unflag</button>
-            </div>
-          </form>
-        )}
+{project.isFlagged && isOwner && (
+  appealSubmitted ? (
+    <div className="alert alert-success" style={{ marginTop: 20 }} role="status">
+      <span aria-hidden="true">✓</span> Your appeal has been submitted and is under review.
+    </div>
+  ) : (
+    <form onSubmit={submitAppeal} noValidate style={{ marginTop: 20 }}>
+      <div className="form-field">
+        <label className="field-label">Appeal message <span className="required">*</span></label>
+        <textarea
+          className={`field-textarea ${showAppealError ? 'field-input-error' : ''}`}
+          rows={4}
+          maxLength={280}
+          value={appeal}
+          onChange={(e) => setAppeal(e.target.value)}
+        />
+        <span className="field-hint">{appeal.length}/280 characters</span>
+        {showAppealError && <span className="field-error">Appeal message is required.</span>}
+        {error && <span className="field-error">{error}</span>}
+      </div>
+      <div className="form-actions">
+        <button type="submit" className="btn btn-primary">Send appeal to unflag</button>
+      </div>
+    </form>
+  )
+)}
+{project.isFlagged && project.appeal && isInstructor && (
+  <div style={{ marginTop: 16 }}>
+    <span className="detail-label">Student appeal</span>
+    <div className="appeal-box" style={{ marginTop: 6 }}>
+      <p style={{ margin: 0 }}>{project.appeal}</p>
+    </div>
+  </div>
+)}
       </div>
 
       <section style={{ marginTop: 24 }}>
@@ -644,58 +700,87 @@ export default function ProjectDetailsPage() {
           />
         )}
 
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Order</th>
-                <th>Task</th>
-                <th>Assigned</th>
-                <th>Status</th>
-                <th>Deadline</th>
-                {(isOwner || isMember) && <th>Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.length === 0 && <tr><td colSpan={(isOwner || isMember) ? 6 : 5} className="table-empty">No tasks yet.</td></tr>}
-              {tasks.map(task => {
-                const canUpdateStatus = isOwner || task.assignedTo === currentUser.id
-                return (
-                  <tr key={task.id}>
-                    <td className="mono">{task.importance}</td>
-                    <td>
-                      <div className="table-name">{task.title}</div>
-                      <div className="muted-text" style={{ fontSize: 13, marginTop: 4 }}>{task.description || 'No details.'}</div>
-                    </td>
-                    <td className="muted-text">{task.assignedTo ? displayName(task.assignedTo) : 'Unassigned'}</td>
-                    <td>
-                      {canUpdateStatus ? (
-                        <select className="field-input" style={{ minWidth: 138 }} value={task.status} onChange={(e) => updateTaskStatus(task, e.target.value)}>
-                          <option value="pending">Pending</option>
-                          <option value="postponed">Post-poned</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      ) : <StatusBadge status={task.status} />}
-                    </td>
-                    <td className="muted-text">{task.deadline || '-'}</td>
-                    {(isOwner || isMember) && (
-                      <td>
-                        {isOwner ? (
-                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                            <button className="btn btn-outline btn-sm" onClick={() => { setEditingTask(task); setShowTaskForm(true) }}>Edit</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => deleteTask(task)}>Delete</button>
-                          </div>
-                        ) : (
-                          <span className="muted-text" style={{ fontSize: 13 }}>{task.assignedTo === currentUser.id ? 'Status only' : 'View only'}</span>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+       <div className="table-wrap">
+  <table className="data-table">
+    <thead>
+      <tr>
+        {isOwner && <th>Reorder</th>}
+        <th>Order</th>
+        <th>Task</th>
+        <th>Assigned</th>
+        <th>Status</th>
+        <th>Deadline</th>
+        {(isOwner || isMember) && <th>Actions</th>}
+      </tr>
+    </thead>
+    <tbody>
+      {tasks.length === 0 && (
+        <tr>
+          <td colSpan={isOwner ? 7 : (isOwner || isMember) ? 6 : 5} className="table-empty">
+            No tasks yet.
+          </td>
+        </tr>
+      )}
+      {[...tasks].sort((a, b) => Number(a.importance) - Number(b.importance)).map((task, index, sortedArr) => {
+        const canUpdateStatus = isOwner || task.assignedTo === currentUser.id
+        return (
+          <tr key={task.id}>
+            {isOwner && (
+              <td>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => moveTask(task.id, 'up')}
+                    disabled={index === 0}
+                    style={{ padding: '2px 7px', fontSize: 11 }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => moveTask(task.id, 'down')}
+                    disabled={index === sortedArr.length - 1}
+                    style={{ padding: '2px 7px', fontSize: 11 }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </td>
+            )}
+            <td className="mono">{task.importance}</td>
+            <td>
+              <div className="table-name">{task.title}</div>
+              <div className="muted-text" style={{ fontSize: 13, marginTop: 4 }}>{task.description || 'No details.'}</div>
+            </td>
+            <td className="muted-text">{task.assignedTo ? displayName(task.assignedTo) : 'Unassigned'}</td>
+            <td>
+              {canUpdateStatus ? (
+                <select className="field-input" style={{ minWidth: 138 }} value={task.status} onChange={(e) => updateTaskStatus(task, e.target.value)}>
+                  <option value="pending">Pending</option>
+                  <option value="postponed">Post-poned</option>
+                  <option value="completed">Completed</option>
+                </select>
+              ) : <StatusBadge status={task.status} />}
+            </td>
+            <td className="muted-text">{task.deadline || '-'}</td>
+            {(isOwner || isMember) && (
+              <td>
+                {isOwner ? (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button className="btn btn-outline btn-sm" onClick={() => { setEditingTask(task); setShowTaskForm(true) }}>Edit</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => deleteTask(task)}>Delete</button>
+                  </div>
+                ) : (
+                  <span className="muted-text" style={{ fontSize: 13 }}>{task.assignedTo === currentUser.id ? 'Status only' : 'View only'}</span>
+                )}
+              </td>
+            )}
+          </tr>
+        )
+      })}
+    </tbody>
+  </table>
+</div>
       </section>
 
       <section style={{ marginTop: 24 }}>
@@ -741,35 +826,71 @@ export default function ProjectDetailsPage() {
           </form>
         )}
 
-        {isInstructor && (
-          <form className="card" onSubmit={submitFeedback} style={{ marginBottom: 16 }}>
-            <div className="field-row">
-              <div className="form-field">
-                <label className="field-label">Rating</label>
-                <select className="field-input" value={rating} onChange={(e) => setRating(e.target.value)}>
-                  {[5, 4, 3, 2, 1].map(value => <option key={value} value={value}>{value}/5</option>)}
-                </select>
-              </div>
-              <div className="form-field">
-                <label className="field-label">Instructor feedback</label>
-                <input className="field-input" value={feedbackBody} onChange={(e) => setFeedbackBody(e.target.value)} placeholder="Write feedback for the student." />
-              </div>
-            </div>
-            <div className="form-actions">
-              <button className="btn btn-primary" type="submit">Send feedback</button>
-            </div>
-          </form>
-        )}
+{isInstructor && (
+  <>
+    {/* Rating form — one editable value per instructor */}
+    <form className="card" onSubmit={submitRating} style={{ marginBottom: 16 }}>
+      <div className="form-field">
+        <label className="field-label">Your rating for this project</label>
+        <select className="field-input" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+          {[5, 4, 3, 2, 1].map(value => (
+            <option key={value} value={value}>{value} / 5</option>
+          ))}
+        </select>
+      </div>
+      <div className="form-actions">
+        <button className="btn btn-primary" type="submit">Save rating</button>
+      </div>
+    </form>
 
-        <form className="card" onSubmit={submitComment} style={{ marginBottom: 16 }}>
-          <div className="form-field">
-            <label className="field-label">Project comment</label>
-            <textarea className="field-textarea" rows={3} value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Add a project comment." />
-          </div>
-          <div className="form-actions">
-            <button className="btn btn-outline" type="submit">Add comment</button>
-          </div>
-        </form>
+    {/* Feedback form — can be added multiple times */}
+    <form className="card" onSubmit={submitFeedback} style={{ marginBottom: 16 }}>
+      <div className="form-field">
+        <label className="field-label">Instructor feedback</label>
+        <input
+          className="field-input"
+          value={feedbackBody}
+          onChange={(e) => setFeedbackBody(e.target.value)}
+          placeholder="Write feedback for the student."
+        />
+      </div>
+      <div className="form-actions">
+        <button className="btn btn-primary" type="submit">Send feedback</button>
+      </div>
+    </form>
+  </>
+)}
+
+{isInstructor && (
+  <form className="card" onSubmit={submitComment} style={{ marginBottom: 16 }}>
+    <div className="form-field">
+      <label className="field-label">
+        {editingComment ? 'Edit comment' : 'Project comment'}
+      </label>
+      <textarea
+        className="field-textarea"
+        rows={3}
+        value={commentBody}
+        onChange={(e) => setCommentBody(e.target.value)}
+        placeholder="Add a comment or feedback on this project."
+      />
+    </div>
+    <div className="form-actions">
+      <button className="btn btn-primary" type="submit">
+        {editingComment ? 'Save comment' : 'Add comment'}
+      </button>
+      {editingComment && (
+        <button
+          className="btn btn-outline"
+          type="button"
+          onClick={() => { setEditingComment(null); setCommentBody('') }}
+        >
+          Cancel
+        </button>
+      )}
+    </div>
+  </form>
+)}
 
         <div className="detail-grid">
           <div className="card">
@@ -796,30 +917,49 @@ export default function ProjectDetailsPage() {
 
           <div className="card">
             <h3 className="card-title">Instructor feedback</h3>
-            {feedback.length === 0 ? (
-              <p className="muted-text">No feedback yet.</p>
-            ) : feedback.map(item => (
-              <div key={item.id} className="profile-view-section">
-                <strong>{displayName(item.instructorId)}</strong>
-                <span className="badge badge-success" style={{ marginLeft: 8 }}>{item.rating}/5</span>
-                <p className="profile-view-text" style={{ marginTop: 8 }}>{item.body}</p>
-                <span className="muted-text" style={{ fontSize: 12 }}>{new Date(item.createdAt).toLocaleString('en-GB')}</span>
-              </div>
-            ))}
+            {feedback.filter(f => !f.isRating).length === 0 ? (
+  <p className="muted-text">No feedback yet.</p>
+) : feedback.filter(f => !f.isRating).map(item => (
+  <div key={item.id} className="profile-view-section">
+    <strong>{displayName(item.instructorId)}</strong>
+    <p className="profile-view-text" style={{ marginTop: 8 }}>{item.body}</p>
+    <span className="muted-text" style={{ fontSize: 12 }}>{new Date(item.createdAt).toLocaleString('en-GB')}</span>
+  </div>
+))}
+            
           </div>
 
           <div className="card">
-            <h3 className="card-title">Comments</h3>
-            {comments.length === 0 ? (
-              <p className="muted-text">No comments yet.</p>
-            ) : comments.map(item => (
-              <div key={item.id} className="profile-view-section">
-                <strong>{displayName(item.authorId)}</strong>
-                <p className="profile-view-text" style={{ marginTop: 8 }}>{item.body}</p>
-                <span className="muted-text" style={{ fontSize: 12 }}>{new Date(item.createdAt).toLocaleString('en-GB')}</span>
-              </div>
-            ))}
-          </div>
+  <h3 className="card-title">Comments</h3>
+  {comments.length === 0 ? (
+    <p className="muted-text">No comments yet.</p>
+  ) : comments.map(item => (
+    <div key={item.id} className="profile-view-section">
+      <strong>{displayName(item.authorId)}</strong>
+      <p className="profile-view-text" style={{ marginTop: 8 }}>{item.body}</p>
+      <span className="muted-text" style={{ fontSize: 12 }}>
+        {new Date(item.createdAt).toLocaleString('en-GB')}
+        {item.updatedAt ? ' (edited)' : ''}
+      </span>
+      {isInstructor && item.authorId === currentUser.id && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => { setEditingComment(item); setCommentBody(item.body) }}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={() => deleteComment(item.id)}
+          >
+            Remove
+          </button>
+        </div>
+      )}
+    </div>
+  ))}
+</div>
         </div>
       </section>
     </div>

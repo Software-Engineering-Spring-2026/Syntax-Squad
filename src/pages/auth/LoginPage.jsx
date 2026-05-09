@@ -65,13 +65,14 @@ export default function LoginPage() {
   }, [tab, role])
 
   const isEmployer = tab === 'signup' && role === 'employer'
+  const GUC_EMAIL = /@guc\.edu\.eg$/i
 
   const emailValid =
     tab === 'signin'
       ? email.trim().length > 0
       : isEmployer
-      ? email.trim().length > 0
-      : EMAIL_PATTERN.test(email)
+      ? EMAIL_PATTERN.test(email)
+      : EMAIL_PATTERN.test(email) && GUC_EMAIL.test(email)
 
   const showEmailError = (emailBlurred || attempted) && !emailValid
   const showPasswordError = attempted && !password.trim()
@@ -399,10 +400,10 @@ export default function LoginPage() {
               />
               {showEmailError && (
                 <span id="email-err" className="field-error" role="alert">
-                  {tab === 'signup' && !isEmployer
-                    ? 'Enter a valid email address.'
-                    : 'Email is required.'}
-                </span>
+                {tab === 'signup' && !isEmployer && EMAIL_PATTERN.test(email)
+                  ? 'Students and instructors must use a GUC email (@guc.edu.eg).'
+                  : 'Please enter a valid email address.'}
+              </span>
               )}
               {showAuthError && (
                 <span className="field-error" role="alert">{authError}</span>

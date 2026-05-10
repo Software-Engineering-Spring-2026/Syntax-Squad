@@ -61,8 +61,8 @@ export default function InstructorSearchPage() {
 
   return (
     <div className="page-container">
-      <Link to={backTo} className="back-link">
-         Back
+      <Link to={backTo} className="back-link" aria-label="Go back">
+        <span className="back-arrow" aria-hidden="true">&larr;</span> Back
       </Link>
 
       <div className="page-header">

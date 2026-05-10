@@ -48,7 +48,7 @@ function ProjectFormModal({ mode, project, courses, onClose, onSave }) {
       <div className="modal-card" style={{ maxWidth: 640 }}>
         <div className="modal-header">
           <h2 className="modal-title">{mode === 'edit' ? 'Edit project' : 'Create project'}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
+          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <form onSubmit={handleSubmit} noValidate className="modal-body">
           <div className="form-field">
@@ -169,14 +169,20 @@ function ProjectFormModal({ mode, project, courses, onClose, onSave }) {
 
           <div className="form-field">
             <label className="field-label">Visibility</label>
-            <select
-              className="field-input"
-              value={form.visibility}
-              onChange={(e) => setForm(f => ({ ...f, visibility: e.target.value }))}
-            >
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-            </select>
+            <div className="visibility-toggle-row">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.visibility === 'public'}
+                className={`toggle-switch ${form.visibility === 'public' ? 'toggle-switch-on' : ''}`}
+                onClick={() => setForm(f => ({ ...f, visibility: f.visibility === 'public' ? 'private' : 'public' }))}
+              >
+                <span className="toggle-knob" />
+              </button>
+              <span className="visibility-toggle-label">
+                {form.visibility === 'public' ? 'Public' : 'Private'}
+              </span>
+            </div>
             <span className="field-hint">Private projects are hidden from your portfolio.</span>
           </div>
 
@@ -395,7 +401,7 @@ export default function MyProjectsPage() {
                       : <span className="muted-text" style={{ fontSize: 13 }}>None</span>}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       <Link to={`/projects/${project.id}`} className="btn btn-outline btn-sm">
                         View
                       </Link>

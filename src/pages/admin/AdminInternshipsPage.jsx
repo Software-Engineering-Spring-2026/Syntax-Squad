@@ -16,14 +16,14 @@ function StatStrip({ items }) {
 
 function ProgressBar({ value, color }) {
   const colors = {
-    blue:    'var(--color-primary, #4f8abf)',
-    green:   'var(--color-success, #3d8b5e)',
-    warning: 'var(--color-warning, #b45309)',
-    error:   'var(--color-error,   #b91c1c)',
-    info:    'var(--color-info,    #0369a1)',
+    blue:    'var(--primary)',
+    green:   'var(--success)',
+    warning: 'var(--warning)',
+    error:   'var(--error)',
+    info:    'var(--info)',
   }
   return (
-    <div style={{ background: 'var(--color-border, #e5e7eb)', borderRadius: 4, height: 8, width: '100%' }}>
+    <div style={{ background: 'var(--line)', borderRadius: 4, height: 8, width: '100%' }}>
       <div style={{
         width: `${Math.min(value, 100)}%`,
         background: colors[color] ?? colors.blue,

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import store from '../../data/DummyDataStore'
 import { useAuth } from '../../context/AuthContext'
 
@@ -78,8 +79,11 @@ const ROLE_BADGE = { student: 'badge-blue', instructor: 'badge-primary', employe
 
 export default function AdminUsersPage() {
   const { currentUser } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const filter = searchParams.get('role') || 'all'
+  const setFilter = (r) => setSearchParams(r === 'all' ? {} : { role: r })
+
   const [users,       setUsers]       = useState(() => store.getAllUsers())
-  const [filter,      setFilter]      = useState('all')
   const [search,      setSearch]      = useState('')
   const [toast,       setToast]       = useState('')
   const [showCreateAdmin, setShowCreateAdmin] = useState(false)

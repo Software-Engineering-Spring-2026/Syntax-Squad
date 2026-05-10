@@ -158,20 +158,40 @@ export default function HomePage() {
 
   const cards = ROLE_CARDS[currentUser.role] ?? []
   const projects = store.getProjects()
-  const recommended = projects
-    .filter(p => p.visibility !== 'private' && p.isActive && !p.isFlagged)
-    .filter(p => currentUser.role !== 'student' || p.ownerId !== currentUser.id)
-    .slice(0, 4)
 
   const getOwnerName = (ownerId) => {
     const owner = store.getUserById(ownerId, 'student')
     return owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown'
   }
 
+  const getOwnerMajor = (ownerId) => {
+    const owner = store.getUserById(ownerId, 'student')
+    return owner?.major ?? ''
+  }
+
   const getCourseCode = (courseId) => {
     const course = store.getCourses().find(c => c.id === courseId)
     return course ? course.code : ''
   }
+
+  const userMajor = currentUser.role === 'student' ? (currentUser.major ?? '') : ''
+
+  const eligible = projects
+    .filter(p => p.visibility !== 'private' && p.isActive && !p.isFlagged)
+    .filter(p => currentUser.role !== 'student' || p.ownerId !== currentUser.id)
+
+  // Score: major match first, then most recent
+  const scored = eligible.map(p => ({
+    ...p,
+    _majorMatch: Boolean(userMajor && getOwnerMajor(p.ownerId).toLowerCase() === userMajor.toLowerCase()),
+  })).sort((a, b) => {
+    if (a._majorMatch && !b._majorMatch) return -1
+    if (!a._majorMatch && b._majorMatch) return 1
+    return new Date(b.createdAt) - new Date(a.createdAt)
+  })
+
+  const recommended = scored.slice(0, 6)
+  const hasMajorMatch = recommended.some(p => p._majorMatch)
 
   return (
     <div className="page-container">
@@ -205,8 +225,13 @@ export default function HomePage() {
             <div className="home-card-grid" style={{ marginTop: 14 }}>
               {recommended.map(p => (
                 <Link key={p.id} to={`/projects/${p.id}`} className="home-nav-card">
-                  <div>
-                    <div className="home-nav-meta">{getCourseCode(p.courseId) || 'Project'}</div>
+                  <div style={{ flex: 1 }}>
+                    <div className="home-nav-meta" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {getCourseCode(p.courseId) || 'Project'}
+                      {p._majorMatch && (
+                        <span className="badge badge-success" style={{ fontSize: 10, padding: '2px 7px' }}>Your major</span>
+                      )}
+                    </div>
                     <div className="home-nav-title">{p.title}</div>
                     <div className="home-nav-desc">{getOwnerName(p.ownerId)}</div>
                   </div>

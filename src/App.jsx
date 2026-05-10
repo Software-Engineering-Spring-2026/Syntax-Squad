@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 // Auth pages
 import LoginPage          from './pages/auth/LoginPage'
 import PasswordResetPage  from './pages/auth/PasswordResetPage'
+import EmployerSignupPage from './pages/auth/EmployerSignupPage'
 
 // General pages
 import HomePage           from './pages/HomePage'
@@ -92,8 +93,9 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public auth routes */}
-      <Route path="/login"          element={<LoginPage />} />
-      <Route path="/password-reset" element={<PasswordResetPage />} />
+      <Route path="/login"           element={<LoginPage />} />
+      <Route path="/password-reset"  element={<PasswordResetPage />} />
+      <Route path="/signup/employer" element={<EmployerSignupPage />} />
 
       {/* Home */}
       <Route path="/" element={

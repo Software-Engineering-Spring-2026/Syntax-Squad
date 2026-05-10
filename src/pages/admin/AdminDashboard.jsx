@@ -2,18 +2,15 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import store from '../../data/DummyDataStore'
 
-function StatCard({ label, value, sub, color, to }) {
+function StatCard({ label, meta, sub, to }) {
   const inner = (
-    <div className={`stat-card stat-card-${color ?? 'blue'}`}>
-      <div className="stat-card-body">
-        <div className="stat-card-value">{value}</div>
-        <div className="stat-card-label">{label}</div>
-        {sub && <div className="stat-card-sub muted-text">{sub}</div>}
-      </div>
-      {to && <span className="stat-card-arrow muted-text" aria-hidden="true">→</span>}
+    <div style={{ flex: 1 }}>
+      <div className="home-nav-meta">{meta}</div>
+      <div className="home-nav-title">{label}</div>
+      {sub && <div className="home-nav-desc">{sub}</div>}
     </div>
   )
-  return to ? <Link to={to} className="stat-card-link">{inner}</Link> : inner
+  return to ? <Link to={to} className="home-nav-card">{inner}</Link> : <div className="home-nav-card">{inner}</div>
 }
 
 function RecentNotifs({ adminId }) {
@@ -50,74 +47,25 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stat grid */}
-      <div className="stat-grid">
-      <StatCard label="Students"    value={stats.students}         color="blue"  to="/admin/users" />
-      <StatCard label="Internships" value={stats.totalInternships} color="green" sub={`${stats.totalApplications} applications`} to="/my-internships" />
-    
-        <StatCard label="Total users"    value={stats.totalUsers}      color="blue"   to="/admin/users" />
-        <StatCard label="Instructors"     value={stats.instructors}     color="blue"   to="/instructors" />
-        <StatCard label="Employers"       value={stats.employers}       color="blue"   to="/admin/employers" />
-        <StatCard label="Projects"        value={stats.totalProjects}   color="green"  to="/admin/projects" />
-        <StatCard label="Courses"         value={stats.totalCourses}    color="green"  to="/admin/courses" />
-        <StatCard
-          label="Pending employers"
-          value={stats.pendingEmployers}
-          color={stats.pendingEmployers > 0 ? 'warning' : 'green'}
-          to="/admin/employers"
-          sub={stats.pendingEmployers > 0 ? 'Awaiting review' : 'All clear'}
-        />
-        <StatCard
-          label="Pending link requests"
-          value={stats.pendingLinks}
-          color={stats.pendingLinks > 0 ? 'warning' : 'green'}
-          to="/admin/link-requests"
-          sub={stats.pendingLinks > 0 ? 'Awaiting review' : 'All clear'}
-        />
-        <StatCard
-          label="Flagged projects"
-          value={stats.flaggedProjects}
-          color={stats.flaggedProjects > 0 ? 'error' : 'green'}
-          to="/admin/flagged"
-          sub={stats.flaggedProjects > 0 ? 'Needs attention' : 'All clear'}
-        />
+      <div className="home-card-grid" style={{ marginBottom: 40 }}>
+        <StatCard meta="WORKSPACE" label="Total users" sub="Manage all system accounts" to="/admin/users" />
+        <StatCard meta="NETWORK" label="Students" sub="Browse registered students" to="/admin/users?role=student" />
+        <StatCard meta="FACULTY" label="Instructors" sub="View instructor profiles" to="/admin/users?role=instructor" />
+        <StatCard meta="COMPANIES" label="Employers" sub="Manage company profiles" to="/admin/users?role=employer" />
+        <StatCard meta="CAREERS" label="Internship stats" sub={`${stats.totalApplications} applications`} to="/admin/internships" />
+        <StatCard meta="DISCOVERY" label="Projects" sub="Monitor platform projects" to="/admin/projects" />
+        <StatCard meta="ACADEMICS" label="Courses" sub="Manage active courses" to="/admin/courses" />
       </div>
 
-      {/* Quick actions */}
-      <div className="admin-quick-actions">
-        <h2 className="admin-section-title">Quick actions</h2>
-        <div className="quick-action-grid">
-          <Link to="/admin/employers" className="quick-action-card">
-            <div>
-              <strong>Review employers</strong>
-              <span className="muted-text">{stats.pendingEmployers} pending</span>
-            </div>
-          </Link>
-          <Link to="/admin/users" className="quick-action-card">
-            <div>
-              <strong>Manage users</strong>
-              <span className="muted-text">{stats.totalUsers} total</span>
-            </div>
-          </Link>
-          <Link to="/admin/courses" className="quick-action-card">
-            <div>
-              <strong>Manage courses</strong>
-              <span className="muted-text">{stats.totalCourses} total</span>
-            </div>
-          </Link>
-          <Link to="/admin/link-requests" className="quick-action-card">
-            <div>
-              <strong>Review link requests</strong>
-              <span className="muted-text">{stats.pendingLinks} pending</span>
-            </div>
-          </Link>
-          <Link to="/admin/flagged" className="quick-action-card">
-            <div>
-              <strong>Flagged projects</strong>
-              <span className="muted-text">{stats.flaggedProjects} flagged</span>
-            </div>
-          </Link>
-        </div>
+      <h2 className="admin-section-title" style={{ marginBottom: 16 }}>Action needed</h2>
+      <div className="home-card-grid" style={{ marginBottom: 40 }}>
+        <StatCard meta="REVIEWS" label="Pending employers" sub={stats.pendingEmployers > 0 ? 'Awaiting review' : 'All clear'} to="/admin/employers" />
+        <StatCard meta="REVIEWS" label="Pending link requests" sub={stats.pendingLinks > 0 ? 'Awaiting review' : 'All clear'} to="/admin/link-requests" />
+        <StatCard meta="MODERATION" label="Flagged projects" sub={stats.flaggedProjects > 0 ? 'Needs attention' : 'All clear'} to="/admin/flagged" />
+        <StatCard meta="MODERATION" label="Appeals" sub={stats.pendingAppeals > 0 ? 'Awaiting review' : 'All clear'} to="/admin/appeals" />
       </div>
+
+
 
       {/* Recent notifications */}
       <div className="admin-activity-section">

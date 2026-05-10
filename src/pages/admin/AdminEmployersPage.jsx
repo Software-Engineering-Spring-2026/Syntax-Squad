@@ -16,17 +16,26 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
 
   const handleView = (doc) => {
     if (!doc?.dataUrl || typeof doc.dataUrl !== 'string') return
-    window.open(doc.dataUrl, '_blank', 'noopener')
+    const w = window.open('', '_blank')
+    if (!w) { alert('Please allow pop-ups to view documents.'); return }
+    fetch(doc.dataUrl)
+      .then(r => r.blob())
+      .then(b => w.location.href = URL.createObjectURL(b))
+      .catch(() => w.close())
   }
 
   const handleDownload = (doc) => {
     if (!doc?.dataUrl || typeof doc.dataUrl !== 'string') return
-    const link = document.createElement('a')
-    link.href = doc.dataUrl
-    link.download = doc.name
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
+    fetch(doc.dataUrl)
+      .then(r => r.blob())
+      .then(b => {
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(b)
+        link.download = doc.name
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+      })
   }
 
   return (
@@ -45,7 +54,7 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
             </div>
             <div className="detail-item">
               <span className="detail-label">Status</span>
-              <StatusBadge status={employer.status} />
+              <div><StatusBadge status={employer.status} /></div>
             </div>
             {employer.bio && (
               <div className="detail-item detail-full">
@@ -247,14 +256,14 @@ export default function AdminEmployersPage() {
                       View
                     </button>
                     {emp.status === 'pending' && (
-                      <>
+                      <div style={{ display: 'flex', gap: 12, marginLeft: 32 }}>
                         <button className="btn btn-primary btn-sm" onClick={() => handleDecision(emp.id, 'accepted')}>
                           Accept
                         </button>
                         <button className="btn btn-danger btn-sm" onClick={() => handleDecision(emp.id, 'rejected')}>
                           Reject
                         </button>
-                      </>
+                      </div>
                     )}
                   </div>
                 </td>

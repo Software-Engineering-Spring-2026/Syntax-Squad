@@ -39,15 +39,31 @@ export default function PortfolioDetailsPage() {
 
   return (
     <div className="page-container">
-      <Link to={backPath} className="back-link">Back to {backLabel}</Link>
+      <Link to={backPath} className="back-link">
+        &#8592; Back to {backLabel}
+      </Link>
 
       <div className="profile-view-layout">
         <aside className="card profile-sidebar-card">
-          <div className="profile-avatar-lg">
-            {student.profilePicture ? <img src={student.profilePicture} alt={`${student.firstName} ${student.lastName}`} /> : `${student.firstName?.[0] ?? ''}${student.lastName?.[0] ?? ''}`}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, paddingBottom: 12, width: '100%' }}>
+            <div className="profile-avatar-lg" style={{ margin: '0 auto' }}>
+              {student.profilePicture
+                ? <img src={student.profilePicture} alt={`${student.firstName} ${student.lastName}`} />
+                : `${student.firstName?.[0] ?? ''}${student.lastName?.[0] ?? ''}`}
+            </div>
+            <h1 className="profile-view-name" style={{ marginTop: 4 }}>{student.firstName} {student.lastName}</h1>
+            <p
+              className="muted-text"
+              style={{ margin: 0, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, width: '100%' }}
+              title={student.email}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <polyline points="2,4 12,13 22,4"/>
+              </svg>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{student.email}</span>
+            </p>
           </div>
-          <h1 className="profile-view-name">{student.firstName} {student.lastName}</h1>
-          <p className="muted-text" style={{ margin: 0 }}>{student.email}</p>
           <div className="sidebar-section">
             <div className="sidebar-section-title">Major</div>
             <p className="profile-view-text">{student.major || '-'}</p>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
@@ -20,7 +21,7 @@ function FlagModal({ project, onClose, onSubmit }) {
       <div className="modal-card" style={{ maxWidth: 520 }}>
         <div className="modal-header">
           <h2 className="modal-title">Flag project</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <form onSubmit={handleSubmit} noValidate className="modal-body">
           <p className="muted-text" style={{ marginTop: 0 }}>
@@ -62,6 +63,7 @@ export default function BrowseProjectsPage() {
   const [instructorFilter, setInstructorFilter] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [sort, setSort] = useState('newest')
 
   const canFlag = currentUser?.role === 'admin' || currentUser?.role === 'instructor'
   const canFavorite = currentUser?.role === 'student' || currentUser?.role === 'employer'
@@ -82,7 +84,7 @@ export default function BrowseProjectsPage() {
     const from = dateFrom ? new Date(dateFrom) : null
     const to = dateTo ? new Date(dateTo) : null
 
-    return projects.filter((p) => {
+    const list = projects.filter((p) => {
       if (q && !p.title.toLowerCase().includes(q)) return false
       if (courseFilter && p.courseId !== courseFilter) return false
       if (instructorFilter) {
@@ -98,7 +100,16 @@ export default function BrowseProjectsPage() {
       }
       return true
     })
-  }, [projects, search, courseFilter, instructorFilter, dateFrom, dateTo, instructors])
+
+    return [...list].sort((a, b) => {
+      if (sort === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt)
+      if (sort === 'rating-desc') return store.getProjectRating(b.id).average - store.getProjectRating(a.id).average
+      if (sort === 'rating-asc') return store.getProjectRating(a.id).average - store.getProjectRating(b.id).average
+      return new Date(b.createdAt) - new Date(a.createdAt)
+    })
+  }, [projects, search, courseFilter, instructorFilter, dateFrom, dateTo, instructors, sort])
+
+  const recommended = store.getRecommendedProjects(currentUser.id)
 
   const getOwnerName = (ownerId) => {
     const owner = store.getUserById(ownerId, 'student')
@@ -107,7 +118,7 @@ export default function BrowseProjectsPage() {
 
   const getCourseCode = (courseId) => {
     const course = store.getCourses().find((c) => c.id === courseId)
-    return course ? course.code : '—'
+    return course ? course.code : ''
   }
 
   const handleFlag = (projectId, reason) => {
@@ -147,7 +158,7 @@ export default function BrowseProjectsPage() {
 
       <div className="search-bar-wrap" style={{ marginBottom: 20 }}>
         <div className="search-bar">
-          <span className="search-icon" aria-hidden="true">🔍</span>
+          <span className="search-icon" aria-hidden="true"></span>
           <input
             type="text"
             placeholder="Search by project title..."
@@ -156,7 +167,7 @@ export default function BrowseProjectsPage() {
             className="search-input"
           />
           {search && (
-            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear">×</button>
+            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear"></button>
           )}
         </div>
       </div>
@@ -189,8 +200,34 @@ export default function BrowseProjectsPage() {
             <label className="field-label">To</label>
             <input type="date" className="field-input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           </div>
+          <div className="form-field">
+            <label className="field-label">Sort by</label>
+            <select className="field-input" value={sort} onChange={(e) => setSort(e.target.value)}>
+              <option value="newest">Creation date: newest</option>
+              <option value="oldest">Creation date: oldest</option>
+              <option value="rating-desc">Rating: high to low</option>
+              <option value="rating-asc">Rating: low to high</option>
+            </select>
+          </div>
         </div>
       </div>
+
+      {recommended.length > 0 && (
+        <section className="card" style={{ marginBottom: 16 }}>
+          <h2 className="section-title">Recommended Projects</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            {recommended.map(project => (
+              <div key={project.id} className="profile-view-section" style={{ margin: 0 }}>
+                <div className="table-name">{project.title}</div>
+                <div className="muted-text" style={{ fontSize: 13, marginTop: 4 }}>{getCourseCode(project.courseId)} - {store.getProjectRating(project.id).average || 'No'} rating</div>
+                <Link to={`/projects/${project.id}`} state={{ from: '/browse/projects', fromLabel: 'projects' }} className="btn btn-outline btn-sm" style={{ marginTop: 10 }}>
+                  View
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="table-wrap">
         <table className="data-table">
@@ -200,13 +237,14 @@ export default function BrowseProjectsPage() {
               <th>Owner</th>
               <th>Course</th>
               <th>Status</th>
+              <th>Rating</th>
               {canFavorite && <th>Favorite</th>}
-              <th>Flag</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
-              <tr><td colSpan={canFavorite ? 6 : 5} className="table-empty">No projects found.</td></tr>
+              <tr><td colSpan={canFavorite ? 7 : 6} className="table-empty">No projects found.</td></tr>
             )}
             {filtered.map((project) => (
               <tr key={project.id} className={!project.isActive ? 'table-row-muted' : ''}>
@@ -218,6 +256,7 @@ export default function BrowseProjectsPage() {
                     {project.isActive ? 'Active' : 'Deactivated'}
                   </span>
                 </td>
+                <td className="muted-text">{store.getProjectRating(project.id).count ? `${store.getProjectRating(project.id).average}/5` : '-'}</td>
                 {canFavorite && (
                   <td>
                     <button
@@ -232,15 +271,16 @@ export default function BrowseProjectsPage() {
                   </td>
                 )}
                 <td>
-                  {project.isFlagged ? (
-                    <span className="badge badge-error">Flagged</span>
-                  ) : canFlag ? (
-                    <button className="btn btn-danger btn-sm project-action-btn" onClick={() => setSelected(project)}>
-                      Flag
-                    </button>
-                  ) : (
-                    <span className="muted-text" style={{ fontSize: 13 }}>N/A</span>
-                  )}
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <Link to={`/projects/${project.id}`} state={{ from: '/browse/projects', fromLabel: 'projects' }} className="btn btn-outline btn-sm">View</Link>
+                    {project.isFlagged ? (
+                      <span className="badge badge-error">Flagged</span>
+                    ) : canFlag ? (
+                      <button className="btn btn-danger btn-sm project-action-btn" onClick={() => setSelected(project)}>
+                        Flag
+                      </button>
+                    ) : null}
+                  </div>
                 </td>
               </tr>
             ))}

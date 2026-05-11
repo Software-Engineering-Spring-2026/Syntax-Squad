@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
 const NAV_ITEMS = [
-  { to: '/admin',          label: 'Dashboard',        icon: '◈',  end: true },
-  { to: '/admin/employers',label: 'Employers',        icon: '🏢'            },
-  { to: '/admin/users',    label: 'Users',            icon: '👥'            },
-  { to: '/admin/courses',  label: 'Courses',          icon: '📚'            },
-  { to: '/admin/projects', label: 'Projects',         icon: '📁'            },
-  { to: '/admin/appeals',  label: 'Appeals',          icon: '💬'            },
-  { to: '/admin/link-requests', label: 'Link Requests', icon: '🔗'          },
-  { to: '/admin/flagged',  label: 'Flagged Projects', icon: '🚩'            },
+  { to: '/admin', label: 'Dashboard', end: true },
+  { to: '/admin/employers', label: 'Employers' },
+  { to: '/admin/users', label: 'Users' },
+  { to: '/admin/courses', label: 'Courses' },
+  { to: '/admin/projects', label: 'Projects' },
+  { to: '/admin/appeals', label: 'Appeals' },
+  { to: '/admin/link-requests', label: 'Link Requests' },
+  { to: '/admin/flagged', label: 'Flagged Projects' },
+  { to: '/admin/internships', label: 'Internship Stats' },
 ]
 
 function SidebarNotifBadge({ count }) {
@@ -37,12 +38,11 @@ export default function AdminLayout() {
   const handleLogout = () => { logout(); navigate('/login') }
 
   const displayName = currentUser?.name ?? 'Admin'
-  const initial     = displayName[0]?.toUpperCase() ?? 'A'
+  const initial = displayName[0]?.toUpperCase() ?? 'A'
 
   const getBadge = (label) => {
-    if (label === 'Employers')        return pendingEmployers
-    if (label === 'Link Requests')    return pendingLinks
-    if (label === 'Dashboard')        return unread
+    if (label === 'Employers') return pendingEmployers
+    if (label === 'Link Requests') return pendingLinks
     return 0
   }
 
@@ -70,7 +70,6 @@ export default function AdminLayout() {
                 className={({ isActive }) => `sidebar-nav-item ${isActive ? 'sidebar-nav-active' : ''}`}
                 onClick={() => setSidebarOpen(false)}
               >
-                <span className="sidebar-nav-icon" aria-hidden="true">{item.icon}</span>
                 <span className="sidebar-nav-label">{item.label}</span>
                 <SidebarNotifBadge count={badge} />
               </NavLink>
@@ -80,7 +79,6 @@ export default function AdminLayout() {
 
         <div className="sidebar-footer">
           <Link to="/notifications" className="sidebar-nav-item" onClick={() => setSidebarOpen(false)}>
-            <span className="sidebar-nav-icon" aria-hidden="true">🔔</span>
             <span className="sidebar-nav-label">Notifications</span>
             <SidebarNotifBadge count={unread} />
           </Link>

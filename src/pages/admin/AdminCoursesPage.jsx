@@ -27,7 +27,7 @@ function CourseModal({ course, onClose, onSave }) {
       <div className="modal-card" style={{ maxWidth: 400 }}>
         <div className="modal-header">
           <h2 className="modal-title">{editing ? 'Edit course' : 'Add course'}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <form onSubmit={handleSubmit} noValidate className="modal-body">
           <div className="form-field">
@@ -53,11 +53,11 @@ function CourseModal({ course, onClose, onSave }) {
               required
             />
           </div>
-          {error && <div className="alert alert-error"><span aria-hidden="true">⚠</span> {error}</div>}
+          {error && <div className="alert alert-error"><span aria-hidden="true"></span> {error}</div>}
           <div className="modal-footer" style={{ paddingTop: 8 }}>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? <span className="btn-spinner" /> : null}
-              {saving ? 'Saving…' : editing ? 'Save changes' : 'Add course'}
+              {saving ? 'Saving' : editing ? 'Save changes' : 'Add course'}
             </button>
             <button type="button" className="btn btn-outline" onClick={onClose}>Cancel</button>
           </div>
@@ -73,7 +73,7 @@ function DeleteConfirmModal({ course, onClose, onConfirm }) {
       <div className="modal-card" style={{ maxWidth: 380 }}>
         <div className="modal-header">
           <h2 className="modal-title">Delete course</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <div className="modal-body">
           <p>Are you sure you want to delete <strong>{course.name} ({course.code})</strong>? This action cannot be undone.</p>
@@ -131,15 +131,15 @@ export default function AdminCoursesPage() {
       {/* Search */}
       <div className="search-bar-wrap" style={{ marginBottom: 20 }}>
         <div className="search-bar">
-          <span className="search-icon" aria-hidden="true">🔍</span>
+          <span className="search-icon" aria-hidden="true"></span>
           <input
             type="text"
-            placeholder="Search courses by name or code…"
+            placeholder="Search courses by name or code"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="search-input"
           />
-          {search && <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear">×</button>}
+          {search && <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear"></button>}
         </div>
       </div>
 

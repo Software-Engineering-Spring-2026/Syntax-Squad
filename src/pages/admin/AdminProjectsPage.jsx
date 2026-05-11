@@ -24,7 +24,7 @@ function ProjectModal({ project, onClose, onAction, onFlag }) {
       <div className="modal-card">
         <div className="modal-header">
           <h2 className="modal-title">{project.title}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <div className="modal-body">
           <div className="detail-grid">
@@ -34,7 +34,7 @@ function ProjectModal({ project, onClose, onAction, onFlag }) {
             </div>
             <div className="detail-item">
               <span className="detail-label">Course</span>
-              <span className="detail-value">{course ? `${course.name} (${course.code})` : '—'}</span>
+              <span className="detail-value">{course ? `${course.name} (${course.code})` : ''}</span>
             </div>
             <div className="detail-item">
               <span className="detail-label">Project status</span>
@@ -52,7 +52,7 @@ function ProjectModal({ project, onClose, onAction, onFlag }) {
           <div className="detail-item detail-full" style={{ marginTop: 16 }}>
             <span className="detail-label">Flag reason</span>
             <div className="flag-reason-box">
-              <span className="flag-reason-icon" aria-hidden="true">🚩</span>
+              <span className="flag-reason-icon" aria-hidden="true"></span>
               <p style={{ margin: 0 }}>{project.flagReason ?? 'No reason provided.'}</p>
             </div>
           </div>
@@ -60,7 +60,7 @@ function ProjectModal({ project, onClose, onAction, onFlag }) {
             <div className="detail-item detail-full" style={{ marginTop: 16 }}>
               <span className="detail-label">Student appeal</span>
               <div className="appeal-box">
-                <span className="appeal-icon" aria-hidden="true">💬</span>
+                <span className="appeal-icon" aria-hidden="true"></span>
                 <p style={{ margin: 0 }}>{project.appeal}</p>
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function AdminProjectsPage() {
 
   const getCourseName = (courseId) => {
     const c = store.getCourses().find((x) => x.id === courseId)
-    return c ? c.code : '—'
+    return c ? c.code : ''
   }
 
   const filtered = (() => {
@@ -200,7 +200,7 @@ export default function AdminProjectsPage() {
 
       <div className="search-bar-wrap" style={{ marginBottom: 20 }}>
         <div className="search-bar">
-          <span className="search-icon" aria-hidden="true">🔍</span>
+          <span className="search-icon" aria-hidden="true"></span>
           <input
             type="text"
             placeholder="Search by project title..."
@@ -209,7 +209,7 @@ export default function AdminProjectsPage() {
             className="search-input"
           />
           {search && (
-            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear">×</button>
+            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear"></button>
           )}
         </div>
       </div>
@@ -269,7 +269,7 @@ export default function AdminProjectsPage() {
                 <td><span className="course-code mono">{getCourseName(p.courseId)}</span></td>
                 <td>
                   {p.isFlagged
-                    ? <span className="badge badge-error">🚩 Flagged</span>
+                    ? <span className="badge badge-error"> Flagged</span>
                     : <span className="badge badge-success">Clear</span>}
                 </td>
                 <td>

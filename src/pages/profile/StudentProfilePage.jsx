@@ -49,7 +49,7 @@ function AvatarUpload({ user, onUpload }) {
         onChange={handleFile}
         aria-label="Upload profile picture"
       />
-      <p className="field-hint">JPG, PNG or GIF · max 2 MB</p>
+      <p className="field-hint">JPG, PNG or GIF  max 2 MB</p>
     </div>
   )
 }
@@ -78,7 +78,7 @@ function SkillsInput({ skills, onChange }) {
               onClick={() => remove(s)}
               aria-label={`Remove ${s}`}
             >
-              ×
+              
             </button>
           </span>
         ))}
@@ -148,6 +148,35 @@ export default function StudentProfilePage() {
   const showMajorError = attempted && !form.major
   const showOtherMajorError =
     attempted && form.major === 'Other' && !form.otherMajor.trim()
+// Req 72 — Statistics
+const myProjects = store.getProjects().filter(p => p.ownerId === currentUser.id)
+
+// Language breakdown
+const langCounts = myProjects.flatMap(p => p.languages ?? []).reduce((acc, lang) => {
+  acc[lang] = (acc[lang] ?? 0) + 1
+  return acc
+}, {})
+const totalLangCount = Object.values(langCounts).reduce((a, b) => a + b, 0)
+const langStats = Object.entries(langCounts)
+  .map(([name, count]) => ({ name, count, pct: totalLangCount > 0 ? Math.round((count / totalLangCount) * 100) : 0 }))
+  .sort((a, b) => b.count - a.count)
+
+// Top collaborators per project
+const collaboratorMap = {}
+myProjects.forEach(p => {
+  (p.collaborators ?? []).forEach(collabId => {
+    if (collabId === currentUser.id) return
+    collaboratorMap[collabId] = (collaboratorMap[collabId] ?? 0) + 1
+  })
+})
+const topCollaborators = Object.entries(collaboratorMap)
+  .map(([id, projectCount]) => {
+    const user = store.getUserById(id, 'student')
+    return user ? { name: `${user.firstName} ${user.lastName}`, projectCount } : null
+  })
+  .filter(Boolean)
+  .sort((a, b) => b.projectCount - a.projectCount)
+
 
   return (
     <div className="page-container">
@@ -259,7 +288,7 @@ export default function StudentProfilePage() {
             </span>
           </div>
 
-          {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true">✓</span> Profile saved successfully.</div>}
+          {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true"></span> Profile saved successfully.</div>}
 
           <div className="form-actions">
             <button
@@ -268,7 +297,7 @@ export default function StudentProfilePage() {
               disabled={saving || !dirty}
             >
               {saving ? <span className="btn-spinner" /> : null}
-              {saving ? 'Saving…' : 'Save changes'}
+              {saving ? 'Saving' : 'Save changes'}
             </button>
             {dirty && (
               <button
@@ -293,7 +322,63 @@ export default function StudentProfilePage() {
             )}
           </div>
         </div>
-      </form>
+        </form>
+
+{/* Req 72 — Student statistics */}
+<div className="card" style={{ marginTop: 24 }}>
+  <h2 className="card-title">My statistics</h2>
+
+  {/* Total projects */}
+  <div className="profile-view-section">
+    <span className="detail-label">Total projects</span>
+    <div style={{ marginTop: 8 }}>
+      <span className="badge badge-primary" style={{ fontSize: 20, padding: '6px 16px' }}>
+        {myProjects.length}
+      </span>
     </div>
-  )
+  </div>
+
+  {/* Language breakdown */}
+  <div className="profile-view-section">
+    <span className="detail-label">Programming languages used</span>
+    {langStats.length === 0 ? (
+      <p className="muted-text" style={{ marginTop: 8, fontSize: 13 }}>No languages added to your projects yet.</p>
+    ) : (
+      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {langStats.map(({ name, count, pct }) => (
+          <div key={name}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{name}</span>
+              <span className="muted-text" style={{ fontSize: 12 }}>{count} project{count !== 1 ? 's' : ''} — {pct}%</span>
+            </div>
+            <div style={{ height: 8, borderRadius: 4, background: '#c3d4ea' }}>
+              <div style={{ height: 8, borderRadius: 4, background: '#4f8abf', width: `${pct}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* Top collaborators */}
+  <div className="profile-view-section">
+    <span className="detail-label">Top collaborators</span>
+    {topCollaborators.length === 0 ? (
+      <p className="muted-text" style={{ marginTop: 8, fontSize: 13 }}>No collaborators on your projects yet.</p>
+    ) : (
+      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {topCollaborators.map(({ name, projectCount }) => (
+          <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #c3d4ea' }}>
+            <span style={{ fontSize: 13, color: '#111827' }}>{name}</span>
+            <span className="badge badge-blue">{projectCount} project{projectCount !== 1 ? 's' : ''}</span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
+</div>
+)
 }
+  

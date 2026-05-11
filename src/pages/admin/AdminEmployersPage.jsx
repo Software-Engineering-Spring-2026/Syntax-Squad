@@ -16,17 +16,26 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
 
   const handleView = (doc) => {
     if (!doc?.dataUrl || typeof doc.dataUrl !== 'string') return
-    window.open(doc.dataUrl, '_blank', 'noopener')
+    const w = window.open('', '_blank')
+    if (!w) { alert('Please allow pop-ups to view documents.'); return }
+    fetch(doc.dataUrl)
+      .then(r => r.blob())
+      .then(b => w.location.href = URL.createObjectURL(b))
+      .catch(() => w.close())
   }
 
   const handleDownload = (doc) => {
     if (!doc?.dataUrl || typeof doc.dataUrl !== 'string') return
-    const link = document.createElement('a')
-    link.href = doc.dataUrl
-    link.download = doc.name
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
+    fetch(doc.dataUrl)
+      .then(r => r.blob())
+      .then(b => {
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(b)
+        link.download = doc.name
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+      })
   }
 
   return (
@@ -34,7 +43,7 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
       <div className="modal-card">
         <div className="modal-header">
           <h2 className="modal-title">{employer.companyName}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
 
         <div className="modal-body">
@@ -45,7 +54,7 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
             </div>
             <div className="detail-item">
               <span className="detail-label">Status</span>
-              <StatusBadge status={employer.status} />
+              <div><StatusBadge status={employer.status} /></div>
             </div>
             {employer.bio && (
               <div className="detail-item detail-full">
@@ -76,7 +85,7 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
               <ul className="doc-list">
                 {docs.map(doc => (
                   <li key={doc.name} className="doc-item">
-                    <span className="doc-icon" aria-hidden="true">📄</span>
+                    <span className="doc-icon" aria-hidden="true"></span>
                     <div className="doc-info">
                       <span className="doc-name">{doc.name}</span>
                       <span className="doc-date muted-text">
@@ -116,13 +125,13 @@ function EmployerDetailModal({ employer, onClose, onDecision }) {
               className="btn btn-primary"
               onClick={() => onDecision(employer.id, 'accepted')}
             >
-              ✓ Accept company
+               Accept company
             </button>
             <button
               className="btn btn-danger"
               onClick={() => onDecision(employer.id, 'rejected')}
             >
-              ✗ Reject company
+               Reject company
             </button>
             <button className="btn btn-outline" onClick={onClose}>Cancel</button>
           </div>
@@ -175,7 +184,7 @@ export default function AdminEmployersPage() {
 
       {counts.pending > 0 && (
         <div className="alert alert-warning" style={{ marginBottom: 20 }}>
-          <span aria-hidden="true">⏳</span>&nbsp;
+          <span aria-hidden="true"></span>&nbsp;
           <strong>{counts.pending} company{counts.pending !== 1 ? 'ies' : ''}</strong> awaiting approval.
         </div>
       )}
@@ -247,14 +256,14 @@ export default function AdminEmployersPage() {
                       View
                     </button>
                     {emp.status === 'pending' && (
-                      <>
+                      <div style={{ display: 'flex', gap: 12, marginLeft: 32 }}>
                         <button className="btn btn-primary btn-sm" onClick={() => handleDecision(emp.id, 'accepted')}>
                           Accept
                         </button>
                         <button className="btn btn-danger btn-sm" onClick={() => handleDecision(emp.id, 'rejected')}>
                           Reject
                         </button>
-                      </>
+                      </div>
                     )}
                   </div>
                 </td>

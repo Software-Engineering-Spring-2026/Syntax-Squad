@@ -84,8 +84,8 @@ export default function FavoritesPage() {
                   return (
                     <tr key={p.id}>
                       <td className="table-name">{p.title}</td>
-                      <td className="muted-text">{owner ? `${owner.firstName} ${owner.lastName}` : '—'}</td>
-                      <td><span className="course-code mono">{course?.code ?? '—'}</span></td>
+                      <td className="muted-text">{owner ? `${owner.firstName} ${owner.lastName}` : ''}</td>
+                      <td><span className="course-code mono">{course?.code ?? ''}</span></td>
                       <td>
                         <span className={`badge ${p.visibility === 'private' ? 'badge-warning' : 'badge-success'}`}>
                           {p.visibility === 'private' ? 'Private' : 'Public'}
@@ -141,14 +141,14 @@ export default function FavoritesPage() {
                 {favoritePortfolios.map(s => (
                   <tr key={s.id}>
                     <td className="table-name">{`${s.firstName} ${s.lastName}`}</td>
-                    <td className="muted-text">{s.major || '—'}</td>
+                    <td className="muted-text">{s.major || ''}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         {(s.skills ?? []).length > 0
                           ? s.skills.map(skill => (
                               <span key={skill} className="badge badge-blue">{skill}</span>
                             ))
-                          : <span className="muted-text" style={{ fontSize: 13 }}>—</span>}
+                          : <span className="muted-text" style={{ fontSize: 13 }}></span>}
                       </div>
                     </td>
                     <td>

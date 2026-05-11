@@ -60,7 +60,7 @@ export default function CoursesListPage() {
       {toast && <div className="toast toast-success">{toast}</div>}
       {requestError && (
         <div className="alert alert-error" style={{ marginBottom: 16 }}>
-          <span aria-hidden="true">⚠</span> {requestError}
+          <span aria-hidden="true"></span> {requestError}
         </div>
       )}
 
@@ -94,7 +94,7 @@ export default function CoursesListPage() {
 
       <div className="search-bar-wrap" style={{ marginBottom: 20 }}>
         <div className="search-bar">
-          <span className="search-icon" aria-hidden="true">🔍</span>
+          <span className="search-icon" aria-hidden="true"></span>
           <input
             type="text"
             placeholder="Search courses by name or code..."
@@ -105,7 +105,7 @@ export default function CoursesListPage() {
           />
           {search && (
             <button type="button" className="search-clear" onClick={() => setSearch('')} aria-label="Clear">
-              ×
+              
             </button>
           )}
         </div>

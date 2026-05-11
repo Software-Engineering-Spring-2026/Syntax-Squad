@@ -26,7 +26,7 @@ function AvatarUpload({ user, onUpload }) {
         {user.profilePicture ? 'Change logo' : 'Upload logo'}
       </button>
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
-      <p className="field-hint">Company logo · JPG, PNG · max 2 MB</p>
+      <p className="field-hint">Company logo  JPG, PNG  max 2 MB</p>
     </div>
   )
 }
@@ -82,9 +82,9 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
     new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
   const getIcon = (name) => {
-    if (name.endsWith('.pdf')) return '📄'
-    if (name.match(/\.(jpg|jpeg|png|gif)$/i)) return '🖼'
-    return '📎'
+    if (name.endsWith('.pdf')) return ''
+    if (name.match(/\.(jpg|jpeg|png|gif)$/i)) return ''
+    return ''
   }
 
   return (
@@ -117,8 +117,8 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
         )}
       </div>
 
-      {error   && <div className="alert alert-error"   style={{ marginTop: 12 }}><span aria-hidden="true">⚠</span> {error}</div>}
-      {success && <div className="alert alert-success" style={{ marginTop: 12 }}><span aria-hidden="true">✓</span> {success}</div>}
+      {error   && <div className="alert alert-error"   style={{ marginTop: 12 }}><span aria-hidden="true"></span> {error}</div>}
+      {success && <div className="alert alert-success" style={{ marginTop: 12 }}><span aria-hidden="true"></span> {success}</div>}
 
       <div style={{ marginTop: 16 }}>
         <button type="button" className="btn btn-outline" onClick={() => docRef.current?.click()}>
@@ -131,7 +131,7 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
           style={{ display: 'none' }}
           onChange={handleUpload}
         />
-        <p className="field-hint" style={{ marginTop: 6 }}>PDF, JPG, PNG, DOC · max 10 MB per file</p>
+        <p className="field-hint" style={{ marginTop: 6 }}>PDF, JPG, PNG, DOC  max 10 MB per file</p>
       </div>
 
       {pendingDoc && (
@@ -145,7 +145,7 @@ function DocumentsSection({ employerId, documents: initialDocs }) {
                 onClick={() => setPendingDoc('')}
                 aria-label="Close"
               >
-                ×
+                
               </button>
             </div>
             <div className="modal-body">
@@ -181,6 +181,8 @@ export default function EmployerProfilePage() {
   const [error,  setError]  = useState('')
   const [saving, setSaving] = useState(false)
   const [dirty,  setDirty]  = useState(false)
+  const [previewMap, setPreviewMap] = useState(false)
+  const stats = store.getInternshipStats(currentUser.id)
 
   const set = (key, val) => { setForm(f => ({ ...f, [key]: val })); setDirty(true); setSaved(false) }
 
@@ -198,8 +200,12 @@ export default function EmployerProfilePage() {
   }
 
   const openMap = () => {
-    if (!form.address.trim()) { alert('Enter an address first.'); return }
-    window.open(`https://maps.google.com/?q=${encodeURIComponent(form.address)}`, '_blank', 'noopener')
+    const mapTarget = form.location.trim() || form.address.trim()
+    if (!mapTarget) { alert('Enter an address or map location first.'); return }
+    const url = /^https?:\/\//i.test(mapTarget)
+      ? mapTarget
+      : `https://maps.google.com/?q=${encodeURIComponent(mapTarget)}`
+    window.open(url, '_blank', 'noopener')
   }
 
   const statusLabel = { pending: 'Pending review', accepted: 'Verified', rejected: 'Rejected' }
@@ -252,7 +258,7 @@ export default function EmployerProfilePage() {
               <textarea
                 id="ep-bio"
                 className="field-textarea"
-                placeholder="Describe your company, mission, and what makes it unique…"
+                placeholder="Describe your company, mission, and what makes it unique"
                 rows={4}
                 value={form.bio}
                 onChange={e => set('bio', e.target.value)}
@@ -292,19 +298,61 @@ export default function EmployerProfilePage() {
                   onClick={openMap}
                   title="Preview on Google Maps"
                 >
-                  🗺 Map
+                   Map
                 </button>
               </div>
               <span className="field-hint">Click "Map" to preview your address on Google Maps in a new tab.</span>
             </div>
 
-            {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
-            {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true">✓</span> Profile saved successfully.</div>}
+            <div className="form-field">
+  <label htmlFor="ep-location" className="field-label">Map location</label>
+  <div style={{ display: 'flex', gap: 8 }}>
+    <input
+      id="ep-location"
+      type="text"
+      className="field-input"
+      placeholder="Address or coordinates"
+      value={form.location}
+      onChange={e => { set('location', e.target.value); setPreviewMap(false) }}
+      style={{ flex: 1 }}
+    />
+    <button
+      type="button"
+      className="btn btn-outline"
+      onClick={() => setPreviewMap(v => !v)}
+      disabled={!form.location.trim() && !form.address.trim()}
+    >
+      {previewMap ? 'Hide map' : 'Show on map'}
+    </button>
+  </div>
+  {previewMap && (form.location.trim() || form.address.trim()) && (
+    <div style={{ marginTop: 10 }}>
+      <iframe
+        width="100%"
+        height="280"
+        style={{ border: 0, borderRadius: 8 }}
+        src={`https://maps.google.com/maps?q=${encodeURIComponent(form.location.trim() || form.address.trim())}&output=embed`}
+        title="Company location preview"
+        loading="lazy"
+        allowFullScreen
+      />
+      <span className="field-hint">
+        This is a preview. Your saved location text is used to display your company on the map.
+      </span>
+    </div>
+  )}
+  {!previewMap && (
+    <span className="field-hint">Type an address or coordinates, then click "Show on map" to preview.</span>
+  )}
+</div>
+
+            {error && <div className="alert alert-error" role="alert"><span aria-hidden="true"></span> {error}</div>}
+            {saved  && <div className="alert alert-success" role="status"><span aria-hidden="true"></span> Profile saved successfully.</div>}
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={saving || !dirty}>
                 {saving ? <span className="btn-spinner" /> : null}
-                {saving ? 'Saving…' : 'Save changes'}
+                {saving ? 'Saving' : 'Save changes'}
               </button>
               {dirty && (
                 <button
@@ -320,11 +368,42 @@ export default function EmployerProfilePage() {
               )}
             </div>
           </form>
+            
+         {/* Stats (Req 71) */}
+<div className="card">
+  <h2 className="card-title">Internship statistics</h2>
+  <div className="stat-grid" style={{ marginTop: 12 }}>
+    <div className="stat-card stat-card-blue">
+      <div className="stat-card-body">
+        <div className="stat-card-value">{stats.totalInternships}</div>
+        <div className="stat-card-label">Internships offered</div>
+      </div>
+    </div>
+    <div className="stat-card stat-card-green">
+      <div className="stat-card-body">
+        <div className="stat-card-value">{stats.completedInternships}</div>
+        <div className="stat-card-label">Students completed internships</div>
+      </div>
+    </div>
+    <div className="stat-card stat-card-blue">
+      <div className="stat-card-body">
+        <div className="stat-card-value">{stats.totalApplications}</div>
+        <div className="stat-card-label">Total applications received</div>
+      </div>
+    </div>
+    <div className="stat-card stat-card-green">
+      <div className="stat-card-body">
+        <div className="stat-card-value">{stats.acceptedApplications}</div>
+        <div className="stat-card-label">Students accepted</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-          {/* Documents (Req 13) */}
-          <div className="card">
-            <DocumentsSection employerId={currentUser.id} documents={currentUser.documents} />
-          </div>
+{/* Documents (Req 13) */}
+<div className="card">
+  <DocumentsSection employerId={currentUser.id} documents={currentUser.documents} />
+</div>
         </div>
       </div>
     </div>

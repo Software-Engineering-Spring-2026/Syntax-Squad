@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
-const GUC_EMAIL = /^[^\s@]+@(student\.)?guc\.edu\.eg$/i
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i
 
 function EyeIcon({ visible }) {
   return (
@@ -18,15 +18,16 @@ function EyeIcon({ visible }) {
 export default function LoginPage() {
   const { currentUser, login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
-  const [tab,             setTab]             = useState('signin')
-  const [role,            setRole]            = useState('student')
+  // Open on signup tab when arriving from the employer signup back-link
+  const initialTab = new URLSearchParams(location.search).get('tab') === 'signup' ? 'signup' : 'signin'
+  const [tab,             setTab]             = useState(initialTab)
   const [firstName,       setFirstName]       = useState('')
   const [lastName,        setLastName]        = useState('')
   const [email,           setEmail]           = useState('')
   const [password,        setPassword]        = useState('')
   const [confirm,         setConfirm]         = useState('')
-  const [companyName,     setCompanyName]     = useState('')
   const [remember,        setRemember]        = useState(false)
   const [showPw,          setShowPw]          = useState(false)
   const [showConfirm,     setShowConfirm]     = useState(false)
@@ -51,29 +52,24 @@ export default function LoginPage() {
     setConfirm('')
     setFirstName('')
     setLastName('')
-    setCompanyName('')
     setEmailBlurred(false)
     setSignupSuccess(false)
     setSuccessEmail('')
-  }, [tab, role])
+  }, [tab])
 
-  const isEmployer = tab === 'signup' && role === 'employer'
-  const emailValue = isEmployer ? email : email
+  const GUC_EMAIL = /@guc\.edu\.eg$/i
 
   const emailValid =
     tab === 'signin'
       ? email.trim().length > 0
-      : isEmployer
-      ? email.trim().length > 0
-      : GUC_EMAIL.test(email)
+      : EMAIL_PATTERN.test(email) && GUC_EMAIL.test(email)
 
   const showEmailError = (emailBlurred || attempted) && !emailValid
   const showPasswordError = attempted && !password.trim()
-    const showAuthError = tab === 'signin' && authError
+  const showAuthError = tab === 'signin' && authError
   const showConfirmError = attempted && tab === 'signup' && !confirm.trim()
-  const showFirstNameError = attempted && tab === 'signup' && !isEmployer && !firstName.trim()
-  const showLastNameError = attempted && tab === 'signup' && !isEmployer && !lastName.trim()
-  const showCompanyNameError = attempted && tab === 'signup' && isEmployer && !companyName.trim()
+  const showFirstNameError = attempted && tab === 'signup' && !firstName.trim()
+  const showLastNameError = attempted && tab === 'signup' && !lastName.trim()
   const showMismatchError =
     attempted &&
     tab === 'signup' &&
@@ -97,15 +93,11 @@ export default function LoginPage() {
     if (tab === 'signup') {
       if (password !== confirm) { setError('Passwords do not match.'); setLoading(false); return }
       if (password.length < 6)  { setError('Password must be at least 6 characters.'); setLoading(false); return }
+      if (!firstName.trim() || !lastName.trim()) { setError('First and last name are required.'); setLoading(false); return }
 
-      let result
-      if (isEmployer) {
-        if (!companyName.trim()) { setError('Company name is required.'); setLoading(false); return }
-        result = store.registerEmployer({ companyName, companyEmail: email, password })
-      } else {
-        if (!firstName.trim() || !lastName.trim()) { setError('First and last name are required.'); setLoading(false); return }
-        result = store.registerStudent({ firstName, lastName, email, password, role })
-      }
+      // Determine role from email: @student. prefix → student, otherwise instructor
+      const detectedRole = /@student\./i.test(email) ? 'student' : 'instructor'
+      const result = store.registerStudent({ firstName, lastName, email, password, role: detectedRole })
 
       if (!result.ok) { setError(result.error); setLoading(false); return }
       setSignupSuccess(true)
@@ -123,9 +115,9 @@ export default function LoginPage() {
       navigate(result.user.role === 'admin' ? '/admin' : '/', { replace: true })
       return
     }
-
-    navigate('/', { replace: true })
   }
+
+
 
   return (
     <div className="login-split">
@@ -189,53 +181,10 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleSubmit} noValidate className="auth-form">
 
-            {/* Role tabs (signup only) */}
+
+
+            {/* First / Last name (signup) */}
             {tab === 'signup' && (
-              <div className="form-field">
-                <span className="field-label">Account type</span>
-                <div className="role-tabs" role="tablist" aria-label="Account type">
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={role === 'student'}
-                    className={`role-tab ${role === 'student' ? 'role-tab-active' : ''}`}
-                    onClick={() => setRole('student')}
-                  >
-                    Student / Course instructor
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={role === 'employer'}
-                    className={`role-tab ${role === 'employer' ? 'role-tab-active' : ''}`}
-                    onClick={() => setRole('employer')}
-                  >
-                    Employer
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Company name (employer signup) */}
-            {tab === 'signup' && isEmployer && (
-              <div className="form-field">
-                <label htmlFor="companyName" className="field-label">Company name</label>
-                <input
-                  id="companyName"
-                  type="text"
-                  autoComplete="organization"
-                  placeholder="Your company name"
-                  value={companyName}
-                  onChange={e => setCompanyName(e.target.value)}
-                  className={`field-input ${showCompanyNameError ? 'field-input-error' : ''}`}
-                  aria-invalid={showCompanyNameError}
-                  required
-                />
-              </div>
-            )}
-
-            {/* First / Last name (student/instructor signup) */}
-            {tab === 'signup' && !isEmployer && (
               <div className="field-row">
                 <div className="form-field">
                   <label htmlFor="firstName" className="field-label">First name</label>
@@ -271,21 +220,13 @@ export default function LoginPage() {
             {/* Email */}
             <div className="form-field">
               <label htmlFor="email" className="field-label">
-                {tab === 'signin' ? 'Email or admin username' : isEmployer ? 'Company email' : 'Email address'}
+                {tab === 'signin' ? 'Email or admin username' : 'Email address'}
               </label>
               <input
                 id="email"
                 type={tab === 'signin' ? 'text' : 'email'}
                 autoComplete={tab === 'signin' ? 'username' : 'email'}
-                placeholder={
-                  tab === 'signin'
-                    ? 'your@guc.edu.eg or admin'
-                    : isEmployer
-                    ? 'company@example.com'
-                    : tab === 'signup'
-                    ? 'name@student.guc.edu.eg'
-                    : 'your@guc.edu.eg'
-                }
+                placeholder={tab === 'signin' ? 'you@example.com or admin' : 'you@guc.edu.eg'}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onBlur={() => setEmailBlurred(true)}
@@ -296,9 +237,17 @@ export default function LoginPage() {
               />
               {showEmailError && (
                 <span id="email-err" className="field-error" role="alert">
-                  {tab === 'signup' && !isEmployer
-                    ? 'Use your GUC email (e.g. name@student.guc.edu.eg)'
-                    : 'Email is required.'}
+                  {tab === 'signup' && EMAIL_PATTERN.test(email)
+                    ? 'Students and instructors must use a GUC email (@guc.edu.eg).'
+                    : 'Please enter a valid email address.'}
+                </span>
+              )}
+              {/* Live role detection hint shown once they type a valid GUC email */}
+              {tab === 'signup' && !showEmailError && EMAIL_PATTERN.test(email) && (
+                <span className="field-hint role-detect-hint">
+                  {/@student\./i.test(email)
+                    ? '🎓 Signing up as a Student'
+                    : '📚 Signing up as an Instructor'}
                 </span>
               )}
               {showAuthError && (
@@ -385,18 +334,19 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Employer pending notice */}
-            {tab === 'signup' && isEmployer && (
-              <div className="alert alert-info">
-                <span className="alert-icon" aria-hidden="true">ℹ</span>
-                After signing up, your account will be reviewed by an administrator before you can access all features.
-              </div>
-            )}
+            {error && <div className="alert alert-error">{error}</div>}
 
             <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
               {loading ? <span className="btn-spinner" aria-hidden="true" /> : null}
-              {loading ? 'Please wait…' : tab === 'signup' ? 'Create account' : 'Sign in'}
+              {loading ? 'Please wait' : tab === 'signup' ? 'Create account' : 'Sign in'}
             </button>
+
+            {tab === 'signup' && (
+              <p className="employer-signup-link">
+                Are you an employer?{' '}
+                <Link to="/signup/employer" className="text-link">Sign up here</Link>
+              </p>
+            )}
           </form>
           )}
         </div>

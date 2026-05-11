@@ -13,7 +13,7 @@ function FlaggedProjectModal({ project, onClose, onAction }) {
       <div className="modal-card">
         <div className="modal-header">
           <h2 className="modal-title">{project.title}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <div className="modal-body">
           <div className="detail-grid">
@@ -23,7 +23,7 @@ function FlaggedProjectModal({ project, onClose, onAction }) {
             </div>
             <div className="detail-item">
               <span className="detail-label">Course</span>
-              <span className="detail-value">{course ? `${course.name} (${course.code})` : '—'}</span>
+              <span className="detail-value">{course ? `${course.name} (${course.code})` : ''}</span>
             </div>
             <div className="detail-item">
               <span className="detail-label">Project status</span>
@@ -41,7 +41,7 @@ function FlaggedProjectModal({ project, onClose, onAction }) {
           <div className="detail-item detail-full" style={{ marginTop: 16 }}>
             <span className="detail-label">Flag reason</span>
             <div className="flag-reason-box">
-              <span className="flag-reason-icon" aria-hidden="true">🚩</span>
+              <span className="flag-reason-icon" aria-hidden="true"></span>
               <p style={{ margin: 0 }}>{project.flagReason ?? 'No reason provided.'}</p>
             </div>
           </div>
@@ -49,7 +49,7 @@ function FlaggedProjectModal({ project, onClose, onAction }) {
             <div className="detail-item detail-full" style={{ marginTop: 16 }}>
               <span className="detail-label">Student appeal</span>
               <div className="appeal-box">
-                <span className="appeal-icon" aria-hidden="true">💬</span>
+                <span className="appeal-icon" aria-hidden="true"></span>
                 <p style={{ margin: 0 }}>{project.appeal}</p>
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function AdminFlaggedPage() {
 
   const getCourseName = (courseId) => {
     const course = store.getCourses().find((c) => c.id === courseId)
-    return course ? course.code : '—'
+    return course ? course.code : ''
   }
 
   return (
@@ -133,13 +133,13 @@ export default function AdminFlaggedPage() {
 
       {projects.length === 0 && (
         <div className="alert alert-success" style={{ marginBottom: 20 }}>
-          <span aria-hidden="true">✓</span>&nbsp; No flagged projects. Everything looks good!
+          <span aria-hidden="true"></span>&nbsp; No flagged projects. Everything looks good!
         </div>
       )}
 
       {projects.length > 0 && (
         <div className="alert alert-warning" style={{ marginBottom: 20 }}>
-          <span aria-hidden="true">🚩</span>&nbsp;
+          <span aria-hidden="true"></span>&nbsp;
           <strong>{projects.length} project{projects.length !== 1 ? 's' : ''}</strong> flagged for review.
         </div>
       )}
@@ -168,7 +168,7 @@ export default function AdminFlaggedPage() {
                 <td><span className="course-code mono">{getCourseName(project.courseId)}</span></td>
                 <td>
                   {project.isFlagged
-                    ? <span className="badge badge-error">🚩 Flagged</span>
+                    ? <span className="badge badge-error"> Flagged</span>
                     : <span className="badge badge-success">Clear</span>}
                 </td>
                 <td>

@@ -19,7 +19,7 @@ function CheckIcon() {
   )
 }
 
-// Step 1: enter email → receive OTP
+// Step 1: enter email  receive OTP
 // Step 2: enter OTP
 // Step 3: enter new password
 // Step 4: success
@@ -98,7 +98,7 @@ export default function PasswordResetPage() {
           </Link>
         )}
 
-        {/* ── Step 1: Email ──────────────────────────────────────────── */}
+        {/*  Step 1: Email  */}
         {step === 1 && (
           <>
             <h1 className="login-heading">Reset password</h1>
@@ -112,7 +112,7 @@ export default function PasswordResetPage() {
                   id="reset-email"
                   type="email"
                   autoComplete="email"
-                  placeholder="your@guc.edu.eg"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={e => {
                     setEmail(e.target.value)
@@ -126,16 +126,16 @@ export default function PasswordResetPage() {
                   <span className="field-error" role="alert">{emailError}</span>
                 )}
               </div>
-              {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
+              {error && <div className="alert alert-error" role="alert"><span aria-hidden="true"></span> {error}</div>}
               <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
                 {loading ? <span className="btn-spinner" /> : null}
-                {loading ? 'Sending…' : 'Send OTP'}
+                {loading ? 'Sending' : 'Send OTP'}
               </button>
             </form>
           </>
         )}
 
-        {/* ── Step 2: OTP ────────────────────────────────────────────── */}
+        {/*  Step 2: OTP  */}
         {step === 2 && (
           <>
             <h1 className="login-heading">Enter OTP</h1>
@@ -166,10 +166,10 @@ export default function PasswordResetPage() {
                   <span className="field-error" role="alert">{otpError}</span>
                 )}
               </div>
-              {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
+              {error && <div className="alert alert-error" role="alert"><span aria-hidden="true"></span> {error}</div>}
               <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
                 {loading ? <span className="btn-spinner" /> : null}
-                {loading ? 'Verifying…' : 'Verify OTP'}
+                {loading ? 'Verifying' : 'Verify OTP'}
               </button>
               <button
                 type="button"
@@ -182,7 +182,7 @@ export default function PasswordResetPage() {
           </>
         )}
 
-        {/* ── Step 3: New password ───────────────────────────────────── */}
+        {/*  Step 3: New password  */}
         {step === 3 && (
           <>
             <h1 className="login-heading">New password</h1>
@@ -214,16 +214,16 @@ export default function PasswordResetPage() {
                   required
                 />
               </div>
-              {error && <div className="alert alert-error" role="alert"><span aria-hidden="true">⚠</span> {error}</div>}
+              {error && <div className="alert alert-error" role="alert"><span aria-hidden="true"></span> {error}</div>}
               <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
                 {loading ? <span className="btn-spinner" /> : null}
-                {loading ? 'Saving…' : 'Set new password'}
+                {loading ? 'Saving' : 'Set new password'}
               </button>
             </form>
           </>
         )}
 
-        {/* ── Step 4: Success ────────────────────────────────────────── */}
+        {/*  Step 4: Success  */}
         {step === 4 && (
           <div className="reset-success">
             <CheckIcon />

@@ -20,7 +20,7 @@ function InstructorCard({ instructor }) {
         </h3>
         {instructor.bio && (
           <p className="instructor-bio-preview">
-            {instructor.bio.length > 100 ? instructor.bio.slice(0, 100) + '…' : instructor.bio}
+            {instructor.bio.length > 100 ? instructor.bio.slice(0, 100) + '' : instructor.bio}
           </p>
         )}
         {courses.length > 0 && (
@@ -38,7 +38,7 @@ function InstructorCard({ instructor }) {
           </div>
         )}
       </div>
-      <span className="card-arrow" aria-hidden="true">›</span>
+      <span className="card-arrow" aria-hidden="true"></span>
     </Link>
   )
 }
@@ -61,8 +61,8 @@ export default function InstructorSearchPage() {
 
   return (
     <div className="page-container">
-      <Link to={backTo} className="back-link">
-        ← Back
+      <Link to={backTo} className="back-link" aria-label="Go back">
+        <span className="back-arrow" aria-hidden="true">&larr;</span> Back
       </Link>
 
       <div className="page-header">
@@ -75,7 +75,7 @@ export default function InstructorSearchPage() {
       {/* Search bar */}
       <div className="search-bar-wrap">
         <div className="search-bar">
-          <span className="search-icon" aria-hidden="true">🔍</span>
+          <span className="search-icon" aria-hidden="true"></span>
           <input
             type="text"
             placeholder="Search by name or course (e.g. CSEN603, Mohamed)"
@@ -91,7 +91,7 @@ export default function InstructorSearchPage() {
               onClick={() => setQuery('')}
               aria-label="Clear search"
             >
-              ×
+              
             </button>
           )}
         </div>
@@ -110,7 +110,7 @@ export default function InstructorSearchPage() {
 
       {loading ? (
         <div className="loading-state">
-          <span className="spinner" aria-label="Loading…" />
+          <span className="spinner" aria-label="Loading" />
         </div>
       ) : (
         <div className="instructor-grid">

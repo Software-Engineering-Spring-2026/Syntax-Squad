@@ -4,27 +4,33 @@ import store from '../data/DummyDataStore'
 
 const ROLE_CARDS = {
   student: [
-    { to: '/my-projects',       icon: '📁', title: 'My Projects',    desc: 'Manage and showcase your work'        },
-    { to: '/browse/projects',   icon: '🔍', title: 'Browse Projects', desc: 'Explore projects by other students'  },
-    { to: '/browse/portfolios', icon: '👤', title: 'Portfolios',      desc: 'Discover student portfolios'         },
-    { to: '/internships',       icon: '💼', title: 'Internships',     desc: 'Find and apply for opportunities'    },
-    { to: '/messages',          icon: '✉️', title: 'Messages',        desc: 'Chat with peers and companies'       },
-    { to: '/instructors',       icon: '🎓', title: 'Instructors',     desc: 'Browse course instructors'           },
+    { to: '/my-projects',       title: 'My Projects',     desc: 'Manage your portfolio, drafts, tasks, and collaborators', meta: 'Workspace' },
+    { to: '/browse/projects',   title: 'Browse Projects', desc: 'Explore active work from other students', meta: 'Discovery' },
+    { to: '/browse/portfolios', title: 'Portfolios',      desc: 'Find students by name, email, major, and skills', meta: 'Network' },
+    { to: '/internships',       title: 'Internships',     desc: 'Search roles, apply, and track application status', meta: 'Careers' },
+    { to: '/messages',          title: 'Messages',        desc: 'Continue conversations with students and companies', meta: 'Inbox' },
+    { to: '/instructors',       title: 'Instructors',     desc: 'Browse instructor profiles and course links', meta: 'Faculty' },
   ],
   instructor: [
-    { to: '/courses',           icon: '📚', title: 'Courses',          desc: 'View all courses and their codes'  },
-    { to: '/browse/projects',   icon: '🔍', title: 'Browse Projects',  desc: 'View and rate student projects'    },
-    { to: '/browse/portfolios', icon: '👤', title: 'Portfolios',       desc: 'Explore student portfolios'        },
-    { to: '/instructors',       icon: '🎓', title: 'Instructors',      desc: 'Browse course instructors'         },
-    { to: '/messages',          icon: '✉️', title: 'Messages',         desc: 'Connect with students'             },
+    { to: '/courses',           title: 'Courses',         desc: 'Review course catalog and linked courses', meta: 'Teaching' },
+    { to: '/browse/projects',   title: 'Browse Projects', desc: 'Open student work, add feedback, and rate quality', meta: 'Review' },
+    { to: '/browse/portfolios', title: 'Portfolios',      desc: 'Explore student profiles and project history', meta: 'Students' },
+    { to: '/instructors',       title: 'Instructors',     desc: 'Browse faculty profiles and research interests', meta: 'Faculty' },
+    { to: '/messages',          title: 'Messages',        desc: 'Coordinate privately with students', meta: 'Inbox' },
   ],
   employer: [
-    { to: '/browse/projects',   icon: '🔍', title: 'Browse Projects',  desc: 'Discover student work'             },
-    { to: '/browse/portfolios', icon: '👤', title: 'Portfolios',       desc: 'Find talented students'            },
-    { to: '/instructors',       icon: '🎓', title: 'Instructors',      desc: 'Browse course instructors'         },
-    { to: '/my-internships',    icon: '💼', title: 'My Internships',   desc: 'Manage your internship postings'   },
-    { to: '/messages',          icon: '✉️', title: 'Messages',         desc: 'Connect with applicants'           },
+    { to: '/browse/projects',   title: 'Browse Projects', desc: 'Discover student work by topic, course, and language', meta: 'Talent' },
+    { to: '/browse/portfolios', title: 'Portfolios',      desc: 'Shortlist students by skills and project count', meta: 'Hiring' },
+    { to: '/instructors',       title: 'Instructors',     desc: 'Explore faculty profiles and academic areas', meta: 'Faculty' },
+    { to: '/my-internships',    title: 'My Internships',  desc: 'Create postings, manage applicants, and archive roles', meta: 'Recruiting' },
+    { to: '/messages',          title: 'Messages',        desc: 'Connect with applicants and project owners', meta: 'Inbox' },
   ],
+}
+
+const ROLE_INTRO = {
+  student: 'Track your projects, discover peer work, and manage career opportunities from one focused workspace.',
+  instructor: 'Review student work, manage course links, and keep feedback moving across your teaching workflow.',
+  employer: 'Discover student talent, publish internship opportunities, and manage candidate conversations.',
 }
 
 function WelcomeBanner({ user }) {
@@ -42,17 +48,12 @@ function WelcomeBanner({ user }) {
     return 'Good evening'
   }
 
-  const roleLabel = {
-    student:    'Student',
-    instructor: 'Course Instructor',
-    employer:   'Employer',
-    admin:      'Administrator',
-  }[user.role] ?? user.role
-
   return (
     <div className="welcome-banner">
       <div>
-        <h1 className="welcome-title">{greeting()}, {name} 👋</h1>
+        <p className="section-label">Portfolio platform</p>
+        <h1 className="welcome-title">{greeting()}, {name}</h1>
+        <p className="welcome-sub">{ROLE_INTRO[user.role] ?? 'Review platform activity and continue your work.'}</p>
         {user.role === 'employer' && user.status === 'pending' && (
           <p className="welcome-sub">
             <span className="badge badge-warning">Pending approval</span>
@@ -143,7 +144,7 @@ export default function HomePage() {
   const { currentUser } = useAuth()
   if (!currentUser) return null
 
-  // Admin → redirect to admin dashboard handled in routing
+  // Admin redirect to admin dashboard handled in routing.
   if (currentUser.role === 'admin') {
     return (
       <div className="page-container">
@@ -157,20 +158,40 @@ export default function HomePage() {
 
   const cards = ROLE_CARDS[currentUser.role] ?? []
   const projects = store.getProjects()
-  const recommended = projects
-    .filter(p => p.visibility !== 'private' && p.isActive && !p.isFlagged)
-    .filter(p => currentUser.role !== 'student' || p.ownerId !== currentUser.id)
-    .slice(0, 4)
 
   const getOwnerName = (ownerId) => {
     const owner = store.getUserById(ownerId, 'student')
     return owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown'
   }
 
+  const getOwnerMajor = (ownerId) => {
+    const owner = store.getUserById(ownerId, 'student')
+    return owner?.major ?? ''
+  }
+
   const getCourseCode = (courseId) => {
     const course = store.getCourses().find(c => c.id === courseId)
-    return course ? course.code : '—'
+    return course ? course.code : ''
   }
+
+  const userMajor = currentUser.role === 'student' ? (currentUser.major ?? '') : ''
+
+  const eligible = projects
+    .filter(p => p.visibility !== 'private' && p.isActive && !p.isFlagged)
+    .filter(p => currentUser.role !== 'student' || p.ownerId !== currentUser.id)
+
+  // Score: major match first, then most recent
+  const scored = eligible.map(p => ({
+    ...p,
+    _majorMatch: Boolean(userMajor && getOwnerMajor(p.ownerId).toLowerCase() === userMajor.toLowerCase()),
+  })).sort((a, b) => {
+    if (a._majorMatch && !b._majorMatch) return -1
+    if (!a._majorMatch && b._majorMatch) return 1
+    return new Date(b.createdAt) - new Date(a.createdAt)
+  })
+
+  const recommended = scored.slice(0, 6)
+  const hasMajorMatch = recommended.some(p => p._majorMatch)
 
   return (
     <div className="page-container">
@@ -182,8 +203,8 @@ export default function HomePage() {
         <div className="home-card-grid">
           {cards.map(card => (
             <Link key={card.to} to={card.to} className="home-nav-card">
-              <span className="home-nav-icon" aria-hidden="true">{card.icon}</span>
               <div>
+                <div className="home-nav-meta">{card.meta}</div>
                 <div className="home-nav-title">{card.title}</div>
                 <div className="home-nav-desc">{card.desc}</div>
               </div>
@@ -204,10 +225,15 @@ export default function HomePage() {
             <div className="home-card-grid" style={{ marginTop: 14 }}>
               {recommended.map(p => (
                 <Link key={p.id} to={`/projects/${p.id}`} className="home-nav-card">
-                  <span className="home-nav-icon" aria-hidden="true">✨</span>
-                  <div>
+                  <div style={{ flex: 1 }}>
+                    <div className="home-nav-meta" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {getCourseCode(p.courseId) || 'Project'}
+                      {p._majorMatch && (
+                        <span className="badge badge-success" style={{ fontSize: 10, padding: '2px 7px' }}>Your major</span>
+                      )}
+                    </div>
                     <div className="home-nav-title">{p.title}</div>
-                    <div className="home-nav-desc">{getCourseCode(p.courseId)} · {getOwnerName(p.ownerId)}</div>
+                    <div className="home-nav-desc">{getOwnerName(p.ownerId)}</div>
                   </div>
                 </Link>
               ))}
@@ -218,7 +244,6 @@ export default function HomePage() {
 
       {currentUser.role === 'employer' && currentUser.status === 'pending' && (
         <div className="alert alert-warning" style={{ marginTop: 24 }}>
-          <span aria-hidden="true">⏳</span>&nbsp;
           Your company account is awaiting admin approval. Some features are limited until approved.
         </div>
       )}

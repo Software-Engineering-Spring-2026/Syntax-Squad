@@ -12,7 +12,7 @@ function AppealModal({ project, onClose, onAction }) {
       <div className="modal-card">
         <div className="modal-header">
           <h2 className="modal-title">{project.title}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <div className="modal-body">
           <div className="detail-grid">
@@ -22,7 +22,7 @@ function AppealModal({ project, onClose, onAction }) {
             </div>
             <div className="detail-item">
               <span className="detail-label">Course</span>
-              <span className="detail-value">{course ? `${course.name} (${course.code})` : '—'}</span>
+              <span className="detail-value">{course ? `${course.name} (${course.code})` : ''}</span>
             </div>
             <div className="detail-item">
               <span className="detail-label">Project status</span>
@@ -40,7 +40,7 @@ function AppealModal({ project, onClose, onAction }) {
           <div className="detail-item detail-full" style={{ marginTop: 16 }}>
             <span className="detail-label">Student appeal</span>
             <div className="appeal-box">
-              <span className="appeal-icon" aria-hidden="true">💬</span>
+              <span className="appeal-icon" aria-hidden="true"></span>
               <p style={{ margin: 0 }}>{project.appeal}</p>
             </div>
           </div>
@@ -48,7 +48,7 @@ function AppealModal({ project, onClose, onAction }) {
             <div className="detail-item detail-full" style={{ marginTop: 16 }}>
               <span className="detail-label">Flag reason</span>
               <div className="flag-reason-box">
-                <span className="flag-reason-icon" aria-hidden="true">🚩</span>
+                <span className="flag-reason-icon" aria-hidden="true"></span>
                 <p style={{ margin: 0 }}>{project.flagReason}</p>
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function AdminAppealsPage() {
 
   const getCourseName = (courseId) => {
     const course = store.getCourses().find((c) => c.id === courseId)
-    return course ? course.code : '—'
+    return course ? course.code : ''
   }
 
   const formatAppeal = (text) => {
@@ -147,7 +147,7 @@ export default function AdminAppealsPage() {
 
       {appeals.length === 0 && (
         <div className="alert alert-success" style={{ marginBottom: 20 }}>
-          <span aria-hidden="true">✓</span>&nbsp; No appeals submitted.
+          <span aria-hidden="true"></span>&nbsp; No appeals submitted.
         </div>
       )}
 
@@ -176,7 +176,7 @@ export default function AdminAppealsPage() {
                 <td className="muted-text" style={{ maxWidth: 320 }}>{formatAppeal(p.appeal)}</td>
                 <td>
                   {p.isFlagged
-                    ? <span className="badge badge-error">🚩 Flagged</span>
+                    ? <span className="badge badge-error"> Flagged</span>
                     : <span className="badge badge-success">Clear</span>}
                 </td>
                 <td>
@@ -184,11 +184,11 @@ export default function AdminAppealsPage() {
                     {p.isActive ? 'Active' : 'Deactivated'}
                   </span>
                 </td>
-                <td>
-                  <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>
-                    Review
-                  </button>
-                </td>
+               <td style={{ opacity: 1 }}>
+  <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>
+    Review
+  </button>
+</td>
               </tr>
             ))}
           </tbody>

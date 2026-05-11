@@ -10,7 +10,6 @@ function ProjectFormModal({ mode, project, courses, onClose, onSave }) {
     githubLink: project?.githubLink ?? '',
     reportSummary: project?.reportSummary ?? '',
     languages: project?.languages ?? [],
-    collaborators: (project?.collaborators ?? []).join(', '),
     demoVideoUrl: project?.demoVideoUrl ?? '',
     visibility: project?.visibility ?? 'public',
   }))
@@ -33,10 +32,6 @@ function ProjectFormModal({ mode, project, courses, onClose, onSave }) {
       githubLink: form.githubLink,
       reportSummary: form.reportSummary,
       languages: form.languages,
-      collaborators: form.collaborators
-        .split(',')
-        .map(c => c.trim())
-        .filter(Boolean),
       demoVideoUrl: form.demoVideoUrl,
       visibility: form.visibility,
     })
@@ -118,7 +113,7 @@ function ProjectFormModal({ mode, project, courses, onClose, onSave }) {
                       onClick={() => setForm(f => ({ ...f, languages: f.languages.filter(l => l !== lang) }))}
                       aria-label={`Remove ${lang}`}
                     >
-                      ×
+                      
                     </button>
                   </span>
                 ))}
@@ -162,17 +157,6 @@ function ProjectFormModal({ mode, project, courses, onClose, onSave }) {
           </div>
 
           <div className="form-field">
-            <label className="field-label">Collaborators (user IDs, comma-separated)</label>
-            <input
-              type="text"
-              className="field-input"
-              placeholder="e.g. student-2, instructor-1"
-              value={form.collaborators}
-              onChange={(e) => setForm(f => ({ ...f, collaborators: e.target.value }))}
-            />
-          </div>
-
-          <div className="form-field">
             <label className="field-label">Demo video link</label>
             <input
               type="url"
@@ -185,18 +169,24 @@ function ProjectFormModal({ mode, project, courses, onClose, onSave }) {
 
           <div className="form-field">
             <label className="field-label">Visibility</label>
-            <select
-              className="field-input"
-              value={form.visibility}
-              onChange={(e) => setForm(f => ({ ...f, visibility: e.target.value }))}
-            >
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-            </select>
+            <div className="visibility-toggle-row">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.visibility === 'public'}
+                className={`toggle-switch ${form.visibility === 'public' ? 'toggle-switch-on' : ''}`}
+                onClick={() => setForm(f => ({ ...f, visibility: f.visibility === 'public' ? 'private' : 'public' }))}
+              >
+                <span className="toggle-knob" />
+              </button>
+              <span className="visibility-toggle-label">
+                {form.visibility === 'public' ? 'Public' : 'Private'}
+              </span>
+            </div>
             <span className="field-hint">Private projects are hidden from your portfolio.</span>
           </div>
 
-          {error && <div className="alert alert-error"><span aria-hidden="true">⚠</span> {error}</div>}
+          {error && <div className="alert alert-error"><span aria-hidden="true"></span> {error}</div>}
 
           <div className="modal-footer" style={{ paddingTop: 8 }}>
             <button type="submit" className="btn btn-primary">
@@ -216,7 +206,7 @@ function DeleteProjectModal({ project, onClose, onConfirm }) {
       <div className="modal-card" style={{ maxWidth: 380 }}>
         <div className="modal-header">
           <h2 className="modal-title">Delete project</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
         <div className="modal-body">
           <p>Are you sure you want to delete <strong>{project.title}</strong>? This action cannot be undone.</p>
@@ -247,9 +237,8 @@ export default function MyProjectsPage() {
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
   const handleCreate = (payload) => {
-    const result = store.createProject({ ownerId: currentUser.id, ...payload })
+    const result = store.createProject({ ownerId: currentUser.id, ...payload, collaborators: [] })
     if (result.ok) {
-      store.sendProjectInvites(result.project.id, currentUser.id, payload.collaborators)
       refresh()
       showToast('Project created.')
     }
@@ -259,7 +248,6 @@ export default function MyProjectsPage() {
   const handleUpdate = (payload) => {
     const result = store.updateProject(selected.id, currentUser.id, payload)
     if (result.ok) {
-      store.sendProjectInvites(selected.id, currentUser.id, payload.collaborators)
       refresh()
       showToast('Project updated.')
     }
@@ -388,9 +376,9 @@ export default function MyProjectsPage() {
               return (
                 <tr key={project.id} className={!project.isActive ? 'table-row-muted' : ''}>
                   <td className="table-name">{project.title}</td>
-                  <td><span className="course-code mono">{course?.code ?? '—'}</span></td>
+                  <td><span className="course-code mono">{course?.code ?? ''}</span></td>
                   <td className="muted-text">
-                    {project.createdAt ? new Date(project.createdAt).toLocaleDateString('en-GB') : '—'}
+                    {project.createdAt ? new Date(project.createdAt).toLocaleDateString('en-GB') : ''}
                   </td>
                   <td>
                     <span className={`badge ${project.visibility === 'private' ? 'badge-warning' : 'badge-success'}`}>
@@ -413,7 +401,7 @@ export default function MyProjectsPage() {
                       : <span className="muted-text" style={{ fontSize: 13 }}>None</span>}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       <Link to={`/projects/${project.id}`} className="btn btn-outline btn-sm">
                         View
                       </Link>

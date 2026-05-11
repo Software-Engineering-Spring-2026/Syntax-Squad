@@ -1,36 +1,39 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
 export default function InvitationsPage() {
   const { currentUser } = useAuth()
-  const [invites, setInvites] = useState(() => currentUser ? store.getProjectInvitesForUser(currentUser.id) : [])
-  const [toast, setToast] = useState('')
+  const [invites, setInvites] = useState(() =>
+    currentUser ? [...store.getProjectInvitesForUser(currentUser.id)] : []
+  )
+    const [toast, setToast] = useState('')
 
-  if (!currentUser) return null
-
-  const refresh = () => setInvites(store.getProjectInvitesForUser(currentUser.id))
+  const refresh = () => {
+    if (!currentUser) return
+    setInvites([...store.getProjectInvitesForUser(currentUser.id)])
+  }
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
   useEffect(() => {
     if (!currentUser) return
-    refresh()
-  }, [currentUser?.id])
+    setInvites([...store.getProjectInvitesForUser(currentUser.id)])
+  }, [currentUser])
 
-  const rows = useMemo(() => {
-    return invites.map(invite => {
-      const project = store.getProjectById(invite.projectId)
-      const inviter = store.getAllUsers().find(u => u.id === invite.inviterId)
-      const inviterName = inviter?.role === 'employer'
-        ? inviter.companyName
-        : inviter?.role === 'admin'
-        ? inviter.name
-        : inviter
-        ? `${inviter.firstName} ${inviter.lastName}`
-        : 'Unknown'
-      return { invite, project, inviterName }
-    })
-  }, [invites])
+  const rows = invites.map(invite => {
+    const project = store.getProjectById(invite.projectId)
+    const inviter = store.getAllUsers().find(u => u.id === invite.inviterId)
+    const inviterName = inviter?.role === 'employer'
+      ? inviter.companyName
+      : inviter?.role === 'admin'
+      ? inviter.name
+      : inviter
+      ? `${inviter.firstName} ${inviter.lastName}`
+      : 'Unknown'
+    return { invite, project, inviterName }
+  })
+
+  if (!currentUser) return null
 
   const handleResolve = (inviteId, accepted) => {
     const result = store.resolveProjectInvite(inviteId, accepted)

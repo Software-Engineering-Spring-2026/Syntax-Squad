@@ -96,22 +96,24 @@ function CourseLinkSection({ user }) {
           .filter(c => linked.includes(c.id))
           .map(c => (
             <div key={c.id} className="course-item">
-              <div>
+              <div className="course-item-info">
                 <span className="course-name">{c.name}</span>
                 <span className="course-code">{c.code}</span>
               </div>
-              {!pending.includes(c.id) && (
-                <button
-                  type="button"
-                  className="btn btn-outline btn-sm btn-danger-outline"
-                  onClick={() => submit(c.id, 'unlink')}
-                >
-                  Request unlink
-                </button>
-              )}
-              {pending.includes(c.id) && (
-                <span className="badge badge-warning">Pending</span>
-              )}
+              <div className="course-item-actions">
+                {!pending.includes(c.id) && (
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm btn-danger-outline link-request-btn"
+                    onClick={() => submit(c.id, 'unlink')}
+                  >
+                    Request unlink
+                  </button>
+                )}
+                {pending.includes(c.id) && (
+                  <span className="badge badge-warning">Pending</span>
+                )}
+              </div>
             </div>
           ))
         }
@@ -139,7 +141,7 @@ function CourseLinkSection({ user }) {
           </select>
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary btn-sm link-request-btn"
             onClick={() => submit(selected, 'link')}
           >
             Send request
@@ -183,25 +185,36 @@ export default function InstructorProfilePage() {
     setDirty(false)
   }
 
+
   return (
     <div className="page-container">
+      <Link to="/" className="back-link back-home-link" aria-label="Back to home">
+        <span className="back-arrow" aria-hidden="true">&larr;</span> Back to home
+      </Link>
       <div className="page-header">
         <h1 className="page-title">My Profile</h1>
         <p className="page-subtitle">Your profile is visible to students, employers, and other instructors.</p>
       </div>
 
       <div className="profile-form-layout">
-        {/* Left: avatar */}
-        <aside className="profile-sidebar-card card">
-          <AvatarUpload
-            user={{ ...currentUser, profilePicture: form.profilePicture }}
-            onUpload={d => set('profilePicture', d)}
-          />
-          <div className="profile-meta">
-            <span className="badge badge-primary">Course Instructor</span>
-            <span className="muted-text" style={{ fontSize: 13 }}>{currentUser.email}</span>
+        <div>
+          {/* Left: avatar */}
+          <aside className="profile-sidebar-card card">
+            <AvatarUpload
+              user={{ ...currentUser, profilePicture: form.profilePicture }}
+              onUpload={d => set('profilePicture', d)}
+            />
+            <div className="profile-meta">
+              <span className="badge badge-primary">Course Instructor</span>
+              <span className="muted-text" style={{ fontSize: 13 }}>{currentUser.email}</span>
+            </div>
+          </aside>
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+            <Link to="/change-password" className="btn btn-outline">
+              Change password
+            </Link>
           </div>
-        </aside>
+        </div>
 
         {/* Right: details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -269,6 +282,7 @@ export default function InstructorProfilePage() {
               )}
             </div>
           </form>
+
 
           {/* Course linking (Req 7) */}
           <div className="card">

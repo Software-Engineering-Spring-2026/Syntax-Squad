@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
@@ -163,6 +163,9 @@ export default function MessagesPage() {
 
   return (
     <div className="page-container">
+      <Link to="/" className="back-link back-home-link" aria-label="Back to home">
+        <span className="back-arrow" aria-hidden="true">&larr;</span> Back to home
+      </Link>
       <div className="page-header" style={{ alignItems: 'center' }}>
         <div>
           <h1 className="page-title">Messages</h1>

@@ -806,6 +806,19 @@
   text-decoration: none;
 }
 
+.back-home-link {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.back-home-link:hover {
+  color: var(--primary-dark);
+}
+
+.link-request-btn {
+  min-width: 128px;
+}
+
 /*  Navbar  */
 .navbar {
   position: fixed;
@@ -1242,11 +1255,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 10px 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   margin-bottom: 8px;
   background: var(--bg);
+}
+
+.course-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.course-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 160px;
+  flex: 0 0 160px;
 }
 
 .course-name {

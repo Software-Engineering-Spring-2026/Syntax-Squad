@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
@@ -105,6 +106,7 @@ function SkillsInput({ skills, onChange }) {
 
 export default function StudentProfilePage() {
   const { currentUser, refreshUser } = useAuth()
+  const navigate = useNavigate()
   const [form, setForm] = useState({
     firstName:  currentUser.firstName  ?? '',
     lastName:   currentUser.lastName   ?? '',
@@ -187,21 +189,32 @@ const topCollaborators = Object.entries(collaboratorMap)
         </p>
       </div>
 
-      <form onSubmit={handleSave} className="profile-form-layout" noValidate>
-        {/* Left: avatar */}
-        <aside className="profile-sidebar-card card">
-          <AvatarUpload
-            user={{ ...currentUser, profilePicture: form.profilePicture }}
-            onUpload={(dataUrl) => set('profilePicture', dataUrl)}
-          />
-          <div className="profile-meta">
-            <span className="badge badge-blue">{currentUser.role === 'student' ? 'Student' : 'Course Instructor'}</span>
-            <span className="muted-text" style={{ fontSize: 13 }}>{currentUser.email}</span>
+      <div className="profile-form-layout">
+        <div>
+          {/* Left: avatar */}
+          <aside className="profile-sidebar-card card">
+            <AvatarUpload
+              user={{ ...currentUser, profilePicture: form.profilePicture }}
+              onUpload={(dataUrl) => set('profilePicture', dataUrl)}
+            />
+            <div className="profile-meta">
+              <span className="badge badge-blue">{currentUser.role === 'student' ? 'Student' : 'Course Instructor'}</span>
+              <span className="muted-text" style={{ fontSize: 13 }}>{currentUser.email}</span>
+            </div>
+          </aside>
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => navigate('/change-password')}
+            >
+              Change password
+            </button>
           </div>
-        </aside>
+        </div>
 
         {/* Right: form */}
-        <div className="profile-main-card card">
+        <form onSubmit={handleSave} className="profile-main-card card" noValidate>
           <h2 className="card-title">Basic information</h2>
 
           <div className="field-row">
@@ -321,8 +334,8 @@ const topCollaborators = Object.entries(collaboratorMap)
               </button>
             )}
           </div>
-        </div>
         </form>
+      </div>
 
 {/* Req 72 — Student statistics */}
 <div className="card" style={{ marginTop: 24 }}>

@@ -796,6 +796,27 @@ class DummyDataStore {
     return { ok: true }
   }
 
+  changePassword(userId, role, currentPassword, newPassword) {
+    const user = this.getUserById(userId, role)
+    if (!user) return { ok: false, error: 'Account not found.' }
+    if (user.password !== currentPassword) return { ok: false, error: 'Current password is incorrect.' }
+    if (!newPassword || newPassword.length < 6) return { ok: false, error: 'New password must be at least 6 characters.' }
+
+    if (role === 'employer') {
+      const employers = this.data.employers.map(u => u.id === userId ? { ...u, password: newPassword } : u)
+      this._persist({ ...this.data, employers })
+      return { ok: true }
+    }
+    if (role === 'admin') {
+      const admins = this.data.admins.map(u => u.id === userId ? { ...u, password: newPassword } : u)
+      this._persist({ ...this.data, admins })
+      return { ok: true }
+    }
+    const students = this.data.students.map(u => u.id === userId ? { ...u, password: newPassword } : u)
+    this._persist({ ...this.data, students })
+    return { ok: true }
+  }
+
   //  Get user 
 
   getUserById(id, role) {

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
@@ -50,6 +51,9 @@ export default function CoursesListPage() {
 
   return (
     <div style={{ maxWidth: '1225px', margin: '40px auto', padding: '0 20px' }}>
+      <Link to="/" className="back-link back-home-link" aria-label="Back to home">
+        <span className="back-arrow" aria-hidden="true">&larr;</span> Back to home
+      </Link>
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Courses</h1>
@@ -78,7 +82,7 @@ export default function CoursesListPage() {
               ) : (
                 <button
                   type="button"
-                  className="btn btn-outline btn-sm btn-danger-outline"
+                  className="btn btn-outline btn-sm btn-danger-outline link-request-btn"
                   onClick={() => handleRequest(course.id, 'unlink')}
                 >
                   Request unlink
@@ -148,7 +152,7 @@ export default function CoursesListPage() {
                   {!pendingByCourse[course.id] && !linkedCourseIds.includes(course.id) && (
                     <button
                       type="button"
-                      className="btn btn-primary btn-sm"
+                      className="btn btn-primary btn-sm link-request-btn"
                       onClick={() => handleRequest(course.id, 'link')}
                     >
                       Request link
@@ -157,7 +161,7 @@ export default function CoursesListPage() {
                   {!pendingByCourse[course.id] && linkedCourseIds.includes(course.id) && (
                     <button
                       type="button"
-                      className="btn btn-outline btn-sm btn-danger-outline"
+                      className="btn btn-outline btn-sm btn-danger-outline link-request-btn"
                       onClick={() => handleRequest(course.id, 'unlink')}
                     >
                       Request unlink

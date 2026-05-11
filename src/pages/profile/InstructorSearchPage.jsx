@@ -48,7 +48,7 @@ export default function InstructorSearchPage() {
   const [query,       setQuery]       = useState('')
   const [instructors, setInstructors] = useState([])
   const [loading,     setLoading]     = useState(false)
-  const backTo = currentUser?.role === 'admin' ? '/admin' : '/'
+  const backTo = '/'
 
   useEffect(() => {
     setLoading(true)
@@ -61,8 +61,8 @@ export default function InstructorSearchPage() {
 
   return (
     <div className="page-container">
-      <Link to={backTo} className="back-link" aria-label="Go back">
-        <span className="back-arrow" aria-hidden="true">&larr;</span> Back
+      <Link to={backTo} className="back-link back-home-link" aria-label="Back to home">
+        <span className="back-arrow" aria-hidden="true">&larr;</span> Back to home
       </Link>
 
       <div className="page-header">

@@ -79,9 +79,9 @@ export default function ChangePasswordPage() {
             <div className="input-wrap">
               <input
                 type={showCurrent ? 'text' : 'password'}
-                className={`field-input ${showCurrentError ? 'field-input-error' : ''}`}
+                className={`field-input ${(showCurrentError || currentServerError) ? 'field-input-error' : ''}`}
                 value={form.current}
-                onChange={(e) => setForm(f => ({ ...f, current: e.target.value }))}
+                onChange={(e) => { setForm(f => ({ ...f, current: e.target.value })); setAttempted(false); setError('') }}
                 autoComplete="current-password"
               />
               <button
@@ -104,7 +104,7 @@ export default function ChangePasswordPage() {
                 type={showNext ? 'text' : 'password'}
                 className={`field-input ${showNextError ? 'field-input-error' : ''}`}
                 value={form.next}
-                onChange={(e) => setForm(f => ({ ...f, next: e.target.value }))}
+                onChange={(e) => { setForm(f => ({ ...f, next: e.target.value })); setAttempted(false) }}
                 autoComplete="new-password"
               />
               <button
@@ -127,7 +127,7 @@ export default function ChangePasswordPage() {
                 type={showConfirm ? 'text' : 'password'}
                 className={`field-input ${(showConfirmError || showMismatchError) ? 'field-input-error' : ''}`}
                 value={form.confirm}
-                onChange={(e) => setForm(f => ({ ...f, confirm: e.target.value }))}
+                onChange={(e) => { setForm(f => ({ ...f, confirm: e.target.value })); setAttempted(false) }}
                 autoComplete="new-password"
               />
               <button

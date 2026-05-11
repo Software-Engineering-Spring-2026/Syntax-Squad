@@ -152,6 +152,12 @@
   border-radius: var(--radius-sm);
 }
 
+.btn-status-toggle {
+  width: 110px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
 .btn-full {
   width: 100%;
 }
@@ -165,8 +171,15 @@
   animation: spin 0.7s linear infinite;
 }
 
+.btn-decision {
+  width: 85px; 
+  text-align: center;
+  box-sizing: border-box;
+}
 .project-action-btn {
-  min-width: 78px;
+  width: 95px; /* أو 100px لو الخط عندك أكبر */
+  text-align: center;
+  box-sizing: border-box;
   height: 28px;
   padding: 4px 10px;
   font-size: 12px;

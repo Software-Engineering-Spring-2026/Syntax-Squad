@@ -104,10 +104,23 @@ export default function NotificationsPage() {
               Back
             </button>
           )}
-          <h1 className="page-title">
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center' }}>
             Notifications
             {unreadCount > 0 && (
-              <span className="notif-badge" style={{ marginLeft: 10, fontSize: 13, position: 'static', transform: 'none', display: 'inline-flex' }}>
+              <span className="notif-badge" style={{ 
+                marginLeft: 12, 
+                fontSize: 14, 
+                position: 'static', 
+                transform: 'none', 
+                display: 'inline-flex',
+                alignItems: 'center',      
+                justifyContent: 'center',  
+                minWidth: '26px',          
+                height: '26px',            
+                padding: '0 6px',          
+                borderRadius: '50px',      
+                lineHeight: 1
+              }}>
                 {unreadCount}
               </span>
             )}

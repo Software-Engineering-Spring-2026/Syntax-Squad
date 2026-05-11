@@ -49,7 +49,7 @@ export default function CoursesListPage() {
   })
 
   return (
-    <div>
+    <div style={{ maxWidth: '1225px', margin: '40px auto', padding: '0 20px' }}>
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Courses</h1>

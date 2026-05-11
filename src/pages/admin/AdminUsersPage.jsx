@@ -203,7 +203,7 @@ export default function AdminUsersPage() {
                 </td>
                 <td>
                   <button
-                    className={`btn btn-sm ${u.isActive ? 'btn-danger' : 'btn-primary'}`}
+                    className={`btn btn-sm btn-status-toggle ${u.isActive ? 'btn-danger' : 'btn-primary'}`}
                     onClick={() => handleToggleActive(u)}
                   >
                     {u.isActive ? 'Deactivate' : 'Activate'}

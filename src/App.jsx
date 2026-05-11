@@ -6,6 +6,7 @@ import Navbar from './components/Navbar'
 import LoginPage          from './pages/auth/LoginPage'
 import PasswordResetPage  from './pages/auth/PasswordResetPage'
 import EmployerSignupPage from './pages/auth/EmployerSignupPage'
+import PendingVerificationPage from './pages/auth/PendingVerificationPage'
 
 // General pages
 import HomePage           from './pages/HomePage'
@@ -67,6 +68,15 @@ function RequireAuth({ children, roles }) {
   return children
 }
 
+function RequireEmployerApproved({ children }) {
+  const { currentUser } = useAuth()
+  const location = useLocation()
+  if (currentUser?.role === 'employer' && currentUser.status === 'pending') {
+    return <Navigate to="/pending-verification" state={{ from: location }} replace />
+  }
+  return children
+}
+
 //  Layout wrapper for non-admin routes 
 function AppLayout({ children }) {
   const { currentUser } = useAuth()
@@ -96,6 +106,7 @@ function AppRoutes() {
       <Route path="/login"           element={<LoginPage />} />
       <Route path="/password-reset"  element={<PasswordResetPage />} />
       <Route path="/signup/employer" element={<EmployerSignupPage />} />
+      <Route path="/pending-verification" element={<RequireAuth roles={['employer']}><AppLayout><PendingVerificationPage /></AppLayout></RequireAuth>} />
 
       {/* Home */}
       <Route path="/" element={
@@ -167,9 +178,9 @@ function AppRoutes() {
       <Route path="/portfolios/:id"    element={<RequireAuth><AppLayout><PortfolioDetailsPage /></AppLayout></RequireAuth>} />
 
       {/* Member 5: Internships & Messaging */}
-      <Route path="/internships"   element={<RequireAuth roles={['student', 'instructor', 'employer']}><AppLayout><BrowseInternshipsPage /></AppLayout></RequireAuth>} />
-      <Route path="/my-internships" element={<RequireAuth roles={['employer']}><AppLayout><MyInternshipsPage /></AppLayout></RequireAuth>} />
-      <Route path="/messages"      element={<RequireAuth roles={['student', 'instructor', 'employer']}><AppLayout><MessagesPage /></AppLayout></RequireAuth>} />
+      <Route path="/my-internships" element={<RequireAuth roles={['employer']}><RequireEmployerApproved><AppLayout><MyInternshipsPage /></AppLayout></RequireEmployerApproved></RequireAuth>} />
+      <Route path="/messages"      element={<RequireAuth roles={['student', 'instructor', 'employer']}><RequireEmployerApproved><AppLayout><MessagesPage /></AppLayout></RequireEmployerApproved></RequireAuth>} />
+      <Route path="/internships"   element={<RequireAuth roles={['student', 'instructor', 'employer']}><RequireEmployerApproved><AppLayout><BrowseInternshipsPage /></AppLayout></RequireEmployerApproved></RequireAuth>} />
 
       {/* Favorites */}
       <Route path="/favourites"    element={<RequireAuth roles={['student', 'employer']}><AppLayout><FavoritesPage /></AppLayout></RequireAuth>} />

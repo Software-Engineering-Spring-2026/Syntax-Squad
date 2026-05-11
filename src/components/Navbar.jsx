@@ -108,7 +108,12 @@ export default function Navbar() {
 
   if (!currentUser) return null
 
-  const links = NAV_LINKS[currentUser.role] ?? []
+  const isEmployerPending = currentUser.role === 'employer' && currentUser.status === 'pending'
+
+  const links = (NAV_LINKS[currentUser.role] ?? []).filter(link => {
+    if (!isEmployerPending) return true
+    return link.to !== '/my-internships' && link.to !== '/messages'
+  })
   const profilePath = currentUser.role === 'employer' ? '/company-profile' : '/profile'
 
   const displayName =
@@ -177,8 +182,10 @@ export default function Navbar() {
           <button
             type="button"
             className="notif-btn"
-            aria-label={`Messages${msgUnread > 0 ? `, ${msgUnread} unread` : ''}`}
+            aria-label={isEmployerPending ? 'Messages unavailable until approval' : `Messages${msgUnread > 0 ? `, ${msgUnread} unread` : ''}`}
             onClick={handleMessagesClick}
+            disabled={isEmployerPending}
+            title={isEmployerPending ? 'Messages are disabled until your account is approved.' : 'Messages'}
           >
             <MessageIcon />
             {msgUnread > 0 && (
@@ -241,15 +248,15 @@ export default function Navbar() {
                     My Profile
                   </Link>
                 )}
-                <button
-                  type="button"
+                <Link
+                  to="/notifications"
                   className="dropdown-item"
                   role="menuitem"
-                  onClick={() => { setDropOpen(false); handleNotificationsClick() }}
+                  onClick={() => setDropOpen(false)}
                 >
                   Notifications
                   {unread > 0 && <span className="dropdown-badge">{unread}</span>}
-                </button>
+                </Link>
                 <div className="dropdown-divider" />
                 <button
                   className="dropdown-item dropdown-item-danger"

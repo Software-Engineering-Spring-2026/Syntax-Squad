@@ -219,6 +219,46 @@
   line-height: 1;
 }
 
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rating-star-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.rating-star-btn:hover {
+  color: #d97706;
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.rating-star-active {
+  color: #d97706;
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.rating-value {
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
 .star-pill-active {
   color: #d97706;
   border-color: #f59e0b;
@@ -863,6 +903,16 @@
 
 .notif-btn:hover {
   color: var(--primary);
+}
+
+.notif-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  color: var(--muted);
+}
+
+.notif-btn:disabled:hover {
+  color: var(--muted);
 }
 
 .notif-badge {

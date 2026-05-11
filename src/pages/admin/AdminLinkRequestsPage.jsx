@@ -64,11 +64,11 @@ export default function AdminLinkRequestsPage() {
                       })}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button className="btn btn-primary btn-sm" onClick={() => resolve(req.id, true)}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                        <button className="btn btn-primary btn-sm btn-decision" onClick={() => resolve(req.id, true)}>
                           Approve
                         </button>
-                        <button className="btn btn-danger btn-sm" onClick={() => resolve(req.id, false)}>
+                        <button className="btn btn-danger btn-sm btn-decision" onClick={() => resolve(req.id, false)}>
                           Reject
                         </button>
                       </div>

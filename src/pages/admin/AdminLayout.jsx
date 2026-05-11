@@ -110,20 +110,19 @@ export default function AdminLayout() {
         </div>
 
         <main className="admin-main">
-          {location.pathname !== '/admin' && (
+        {location.pathname !== '/admin' && (
             <div style={{ marginBottom: 16 }}>
-              <button
-                type="button"
+              <Link
+                to="/admin"
                 className="text-link"
-                onClick={() => navigate(-1)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                aria-label="Go back"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}
+                aria-label="Go to dashboard"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Back
-              </button>
+                Dashboard
+              </Link>
             </div>
           )}
           <Outlet />

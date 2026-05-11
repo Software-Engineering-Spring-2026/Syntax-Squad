@@ -183,7 +183,7 @@ export default function AdminFlaggedPage() {
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn btn-outline btn-sm" onClick={() => setSelected(project)}>
+                    <button className="btn btn-outline btn-sm project-action-btn" onClick={() => setSelected(project)}>
                       Review
                     </button>
                     <button

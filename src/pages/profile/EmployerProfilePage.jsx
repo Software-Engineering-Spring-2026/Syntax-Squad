@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
@@ -199,6 +200,7 @@ export default function EmployerProfilePage() {
     setDirty(false)
   }
 
+
   const openMap = () => {
     const mapTarget = form.location.trim() || form.address.trim()
     if (!mapTarget) { alert('Enter an address or map location first.'); return }
@@ -224,17 +226,24 @@ export default function EmployerProfilePage() {
       </div>
 
       <div className="profile-form-layout">
-        {/* Left: logo */}
-        <aside className="profile-sidebar-card card">
-          <AvatarUpload
-            user={{ ...currentUser, profilePicture: form.profilePicture }}
-            onUpload={d => set('profilePicture', d)}
-          />
-          <div className="profile-meta">
-            <span className="badge badge-primary">Employer</span>
-            <span className="muted-text" style={{ fontSize: 13 }}>{currentUser.companyEmail}</span>
+        <div>
+          {/* Left: logo */}
+          <aside className="profile-sidebar-card card">
+            <AvatarUpload
+              user={{ ...currentUser, profilePicture: form.profilePicture }}
+              onUpload={d => set('profilePicture', d)}
+            />
+            <div className="profile-meta">
+              <span className="badge badge-primary">Employer</span>
+              <span className="muted-text" style={{ fontSize: 13 }}>{currentUser.companyEmail}</span>
+            </div>
+          </aside>
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+            <Link to="/change-password" className="btn btn-outline">
+              Change password
+            </Link>
           </div>
-        </aside>
+        </div>
 
         {/* Right: details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -368,6 +377,7 @@ export default function EmployerProfilePage() {
               )}
             </div>
           </form>
+
             
          {/* Stats (Req 71) */}
 <div className="card">

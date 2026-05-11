@@ -472,7 +472,9 @@ export default function ProjectDetailsPage() {
 
   return (
     <div className="page-container">
-      <Link to={backPath} className="back-link">Back to {backLabel}</Link>
+      <Link to="/" className="back-link back-home-link" aria-label="Back to home">
+        <span className="back-arrow" aria-hidden="true">&larr;</span> Back to home
+      </Link>
 
       <div className="page-header">
         <div>

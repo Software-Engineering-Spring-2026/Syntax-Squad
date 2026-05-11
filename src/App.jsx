@@ -7,6 +7,7 @@ import LoginPage          from './pages/auth/LoginPage'
 import PasswordResetPage  from './pages/auth/PasswordResetPage'
 import EmployerSignupPage from './pages/auth/EmployerSignupPage'
 import PendingVerificationPage from './pages/auth/PendingVerificationPage'
+import ChangePasswordPage from './pages/auth/ChangePasswordPage'
 
 // General pages
 import HomePage           from './pages/HomePage'
@@ -107,6 +108,7 @@ function AppRoutes() {
       <Route path="/password-reset"  element={<PasswordResetPage />} />
       <Route path="/signup/employer" element={<EmployerSignupPage />} />
       <Route path="/pending-verification" element={<RequireAuth roles={['employer']}><AppLayout><PendingVerificationPage /></AppLayout></RequireAuth>} />
+      <Route path="/change-password" element={<RequireAuth roles={['student', 'instructor', 'employer']}><AppLayout><ChangePasswordPage /></AppLayout></RequireAuth>} />
 
       {/* Home */}
       <Route path="/" element={

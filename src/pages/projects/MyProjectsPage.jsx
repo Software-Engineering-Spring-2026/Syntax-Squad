@@ -282,6 +282,9 @@ export default function MyProjectsPage() {
 
   return (
     <div className="page-container">
+      <Link to="/" className="back-link back-home-link" aria-label="Back to home">
+        <span className="back-arrow" aria-hidden="true">&larr;</span> Back to home
+      </Link>
       <div className="page-header">
         <div>
           <h1 className="page-title">My Projects</h1>

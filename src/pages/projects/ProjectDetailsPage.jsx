@@ -31,6 +31,40 @@ function StatusBadge({ status }) {
   return <span className={`badge ${cls}`}>{label}</span>
 }
 
+function StarIcon({ filled }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} aria-hidden="true">
+      <path d="M12 3l2.9 5.88 6.5.95-4.7 4.58 1.1 6.49L12 17.77 6.2 20.9l1.1-6.49-4.7-4.58 6.5-.95L12 3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function RatingStars({ value, onChange }) {
+  const [preview, setPreview] = useState(null)
+  const displayValue = preview ?? value
+
+  return (
+    <div className="rating-stars" role="radiogroup" aria-label="Project rating">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className={`rating-star-btn ${star <= displayValue ? 'rating-star-active' : ''}`}
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setPreview(star)}
+          onMouseLeave={() => setPreview(null)}
+          role="radio"
+          aria-checked={star === value}
+          aria-label={`${star} out of 5`}
+        >
+          <StarIcon filled={star <= displayValue} />
+        </button>
+      ))}
+      <span className="rating-value" aria-hidden="true">{displayValue} / 5</span>
+    </div>
+  )
+}
+
 function TaskForm({ initialTask, members, onCancel, onSave }) {
   const [form, setForm] = useState(() => initialTask ? {
     title: initialTask.title ?? '',
@@ -832,11 +866,7 @@ export default function ProjectDetailsPage() {
     <form className="card" onSubmit={submitRating} style={{ marginBottom: 16 }}>
       <div className="form-field">
         <label className="field-label">Your rating for this project</label>
-        <select className="field-input" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
-          {[5, 4, 3, 2, 1].map(value => (
-            <option key={value} value={value}>{value} / 5</option>
-          ))}
-        </select>
+        <RatingStars value={rating} onChange={setRating} />
       </div>
       <div className="form-actions">
         <button className="btn btn-primary" type="submit">Save rating</button>

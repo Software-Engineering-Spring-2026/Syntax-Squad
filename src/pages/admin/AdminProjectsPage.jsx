@@ -129,6 +129,14 @@ export default function AdminProjectsPage() {
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
   const refresh = () => setProjects(store.getProjects())
+  const resetFilters = () => {
+    setSearch('')
+    setCourseFilter('')
+    setInstructorFilter('')
+    setDateFrom('')
+    setDateTo('')
+  }
+  const isDefaultFilters = !search && !courseFilter && !instructorFilter && !dateFrom && !dateTo
 
   const handleAction = (action, id) => {
     if (action === 'deactivate') {
@@ -199,18 +207,28 @@ export default function AdminProjectsPage() {
       {toast && <div className="toast toast-success">{toast}</div>}
 
       <div className="search-bar-wrap" style={{ marginBottom: 20 }}>
-        <div className="search-bar">
-          <span className="search-icon" aria-hidden="true"></span>
-          <input
-            type="text"
-            placeholder="Search by project title..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
-          {search && (
-            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear"></button>
-          )}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="search-bar" style={{ flex: '1 1 320px' }}>
+            <span className="search-icon" aria-hidden="true"></span>
+            <input
+              type="text"
+              placeholder="Search by project title..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="search-input"
+            />
+            {search && (
+              <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear"></button>
+            )}
+          </div>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={resetFilters}
+            disabled={isDefaultFilters}
+          >
+            Reset filters
+          </button>
         </div>
       </div>
 

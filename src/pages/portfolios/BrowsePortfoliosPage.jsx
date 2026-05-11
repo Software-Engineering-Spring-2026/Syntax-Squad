@@ -72,6 +72,14 @@ export default function BrowsePortfoliosPage() {
     }
   }
 
+  const resetFilters = () => {
+    setSearch('')
+    setMajorFilter('')
+    setSkillFilter('')
+    setSort('name')
+  }
+  const isDefaultFilters = !search && !majorFilter && !skillFilter && sort === 'name'
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -84,18 +92,28 @@ export default function BrowsePortfoliosPage() {
       {toast && <div className="toast toast-success">{toast}</div>}
 
       <div className="search-bar-wrap" style={{ marginBottom: 16 }}>
-        <div className="search-bar">
-          <span className="search-icon" aria-hidden="true">Search</span>
-          <input
-            type="text"
-            placeholder="Search by student name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
-          {search && (
-            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear">x</button>
-          )}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="search-bar" style={{ flex: '1 1 320px' }}>
+            <span className="search-icon" aria-hidden="true"></span>
+            <input
+              type="text"
+              placeholder="Search by student name or email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="search-input"
+            />
+            {search && (
+              <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear"></button>
+            )}
+          </div>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={resetFilters}
+            disabled={isDefaultFilters}
+          >
+            Reset filters
+          </button>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import store from '../../data/DummyDataStore'
 
@@ -23,6 +23,7 @@ function SidebarNotifBadge({ count }) {
 export default function AdminLayout() {
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [unread, setUnread] = useState(0)
   const [pendingEmployers, setPendingEmployers] = useState(0)
@@ -109,6 +110,22 @@ export default function AdminLayout() {
         </div>
 
         <main className="admin-main">
+          {location.pathname !== '/admin' && (
+            <div style={{ marginBottom: 16 }}>
+              <button
+                type="button"
+                className="text-link"
+                onClick={() => navigate(-1)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                aria-label="Go back"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Back
+              </button>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>
